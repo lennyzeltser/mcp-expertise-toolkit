@@ -1,0 +1,61 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+
+	// ============================================================
+	// CUSTOMIZE THESE VALUES FOR YOUR DEPLOYMENT
+	// ============================================================
+
+	// Worker name - must be unique in your Cloudflare account
+	// Example: "my-expertise-server", "code-review-mcp"
+	"name": "mcp-expertise-server",
+
+	// Optional: Custom domain for your MCP server
+	// Uncomment and configure if you want a custom domain instead of workers.dev
+	// "routes": [
+	// 	{
+	// 		"pattern": "expertise-mcp.example.com",
+	// 		"custom_domain": true
+	// 	}
+	// ],
+
+	// Set to true to enable workers.dev URL (e.g., my-mcp.username.workers.dev)
+	"workers_dev": true,
+
+	// R2 bucket for storing your expertise YAML file
+	// Create with: npx wrangler r2 bucket create <bucket-name>
+	"r2_buckets": [
+		{
+			"binding": "EXPERTISE_BUCKET",
+			"bucket_name": "mcp-expertise-data",
+			"preview_bucket_name": "mcp-expertise-data"
+		}
+	],
+
+	// ============================================================
+	// DO NOT MODIFY BELOW THIS LINE (unless you know what you're doing)
+	// ============================================================
+
+	"main": "src/index.ts",
+	"compatibility_date": "2025-03-10",
+	"compatibility_flags": ["nodejs_compat"],
+
+	"migrations": [
+		{
+			"new_sqlite_classes": ["ExpertiseMCP"],
+			"tag": "v1"
+		}
+	],
+
+	"durable_objects": {
+		"bindings": [
+			{
+				"class_name": "ExpertiseMCP",
+				"name": "MCP_OBJECT"
+			}
+		]
+	},
+
+	"observability": {
+		"enabled": true
+	}
+}

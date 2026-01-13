@@ -1,0 +1,31 @@
+{
+	"name": "mcp-expertise-toolkit",
+	"version": "1.0.0",
+	"private": true,
+	"description": "Turn domain expertise into AI-accessible MCP tools for providing feedback and guidance",
+	"author": "Lenny Zeltser",
+	"license": "MIT",
+	"scripts": {
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev",
+		"format": "biome format --write src/",
+		"lint:fix": "biome lint --fix src/",
+		"start": "wrangler dev",
+		"cf-typegen": "wrangler types",
+		"type-check": "tsc --noEmit",
+		"validate": "bun scripts/validate-expertise.ts"
+	},
+	"dependencies": {
+		"@modelcontextprotocol/sdk": "^1.12.1",
+		"agents": "^0.3.1",
+		"yaml": "^2.8.0",
+		"zod": "^4.2.1"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.3.10",
+		"@cloudflare/workers-types": "^4.20260113.0",
+		"@types/node": "^25.0.6",
+		"typescript": "5.9.3",
+		"wrangler": "^4.58.0"
+	}
+}
