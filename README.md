@@ -4,42 +4,132 @@ A template for building MCP servers that deliver domain-specific expertise to AI
 
 ## What This Does
 
-This toolkit lets you codify your expertise in a YAML file and serve it through an MCP (Model Context Protocol) server. AI assistants like Claude, Cursor, and others can then query your expertise to provide feedback and guidance.
+You have expertise. Maybe you're good at writing, code review, recipe development, or security reports. This toolkit lets you codify that expertise in a YAML file and make it available to AI assistants through the Model Context Protocol (MCP).
+
+When someone uses an AI assistant connected to your server, the AI can query your expertise to provide feedback. The AI analyzes the user's content locally using your guidelines—the user's content never leaves their machine.
 
 **This is a template repository.** Fork it, customize it with your expertise, then deploy it.
 
-**Features:**
+### What MCP Is
 
-- **Privacy-preserving**: The server returns guidelines; the AI analyzes content locally. User content never leaves the user's machine.
-- **Semantic guidance**: Teaches AI to understand concepts, not match keywords.
-- **Token-efficient**: Detail levels let users control response size.
-- **Domain-agnostic**: Works for any expertise area—writing, code review, recipes, legal documents, whatever you know well.
+MCP (Model Context Protocol) is a standard for connecting AI assistants to external tools and data sources. AI assistants like Claude (via Claude Code), Cursor, and others support MCP. When you deploy an MCP server, any compatible AI assistant can use the tools it provides.
+
+### Example: What This Looks Like in Practice
+
+Say you've deployed a writing feedback server. A user asks Claude to review their blog post:
+
+```
+User: "Review this blog post for clarity and structure"
+
+Claude: [calls load_writing_context to get your expertise]
+Claude: [analyzes the user's post locally using your checkpoints and quality checks]
+Claude: "The introduction effectively states what readers will learn. Consider these improvements:
+        1. The second paragraph jumps to implementation before explaining the problem...
+        2. 'Utilize the methodology' could be simpler: 'Use this method'..."
+```
+
+Your expertise shaped that feedback. The user's blog post never left their machine.
+
+## Prerequisites
+
+- **Node.js 18+** or **Bun** (recommended)
+- **Cloudflare account** (free tier works) for deployment
+- **Wrangler CLI**: `npm install -g wrangler`
+
+## Repository Structure
+
+```
+mcp-expertise-toolkit/
+├── content/
+│   └── writing-feedback.yaml   # Example expertise (replace with yours)
+├── src/
+│   ├── index.ts                # MCP server implementation
+│   └── types.ts                # TypeScript types and Zod schemas
+├── scripts/
+│   └── validate-expertise.ts   # Validates your YAML
+├── docs/
+│   ├── schema-reference.md     # Complete YAML format
+│   └── deployment-guide.md     # Cloudflare setup details
+├── wrangler.jsonc              # Cloudflare Worker config
+└── package.json
+```
+
+**To customize:** Edit `content/writing-feedback.yaml` (or create your own YAML file). The server code in `src/` rarely needs changes.
 
 ## How to Use This Template
 
-### 1. Fork and customize
+### 1. Fork and install
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/mcp-expertise-toolkit.git
 cd mcp-expertise-toolkit
-bun install  # or npm install
+bun install  # or: npm install
 ```
 
-Edit `content/writing-feedback.yaml` with your own expertise. The included example covers writing feedback—replace it with your domain.
+### 2. Create your expertise file
 
-### 2. Validate
+Edit `content/writing-feedback.yaml` or create a new file. The included example covers writing feedback—replace it with your domain.
+
+**Key sections:**
+
+```yaml
+version: "1.0.0"
+
+meta:
+  domain: "Your Domain"           # e.g., "Code Review", "Recipe Feedback"
+  author: "Your Name"
+  description: "What this expertise covers"
+  toolPrefix: "yourdomain"        # Creates tools like load_yourdomain_context
+
+principles:                       # High-level guidelines (3-5 recommended)
+  - name: "Core Principle"
+    guidelines:
+      - "First guideline"
+      - "Second guideline"
+    examples:                     # Optional but helpful
+      - bad: "Example of poor practice"
+        good: "Example of good practice"
+
+checkpoints:                      # Things to verify in content
+  - id: "section_id"
+    name: "Section Name"
+    purpose: "Why this matters"
+    whatIndicatesPresence:        # Semantic descriptions, not keywords
+      - "Concept to look for"
+    commonProblems:
+      - "What goes wrong when missing"
+
+qualityChecks:                    # Specific issues to flag
+  issue_type:
+    whatToCheck: "What to look for"
+    whyItMatters: "Why this matters"
+    examples:
+      - bad: "Example of the problem"
+        good: "How to fix it"
+
+reviewGuidance:                   # How to deliver feedback
+  feedbackStructure:
+    - "Start with strengths"
+    - "Be specific"
+  tone:
+    - "Collaborative, not critical"
+```
+
+See [docs/schema-reference.md](docs/schema-reference.md) for the complete format.
+
+### 3. Validate
 
 ```bash
 bun run validate
+# Or specify a file:
+bun scripts/validate-expertise.ts path/to/your-expertise.yaml
 ```
 
-This checks your YAML against the schema and reports any issues.
+This checks your YAML against the schema and shows what tools will be created.
 
-### 3. Deploy
+### 4. Deploy
 
-The included configuration targets Cloudflare Workers + R2, but the code runs anywhere that supports JavaScript/TypeScript. See [Deployment Options](#deployment-options) below.
-
-For Cloudflare:
+For Cloudflare (default):
 
 ```bash
 npx wrangler login
@@ -50,9 +140,11 @@ npx wrangler r2 object put mcp-expertise-data/expertise.yaml \
 bun run deploy
 ```
 
-### 4. Connect your AI assistant
+The deploy command outputs your server URL.
 
-Add to Claude Code settings (`~/.claude/settings.local.json`) or your MCP client config:
+### 5. Connect your AI assistant
+
+Add to Claude Code settings (`~/.claude/settings.local.json`):
 
 ```json
 {
@@ -65,62 +157,23 @@ Add to Claude Code settings (`~/.claude/settings.local.json`) or your MCP client
 }
 ```
 
-## YAML Schema
+For other MCP clients, use the `/mcp` endpoint URL directly.
 
-The expertise file has these main sections:
-
-```yaml
-version: "1.0.0"
-
-meta:
-  domain: "Your Domain"
-  author: "Your Name"
-  description: "What this expertise covers"
-  toolPrefix: "yourdomain"  # Creates tools like load_yourdomain_context
-
-principles:
-  - name: "Core Principle"
-    guidelines:
-      - "First guideline"
-      - "Second guideline"
-
-checkpoints:
-  - id: "section_name"
-    name: "Section Name"
-    purpose: "Why this matters"
-    whatIndicatesPresence:
-      - "Concept to look for (semantic, not keyword)"
-    commonProblems:
-      - "What goes wrong when missing"
-
-qualityChecks:
-  issue_type:
-    whatToCheck: "What to look for"
-    whyItMatters: "Why this matters"
-    examples:
-      - bad: "Example of the problem"
-        good: "How to fix it"
-
-reviewGuidance:
-  feedbackStructure:
-    - "Start with strengths"
-    - "Be specific"
-  tone:
-    - "Collaborative, not critical"
-```
-
-See [docs/schema-reference.md](docs/schema-reference.md) for the complete schema.
-
-## MCP Tools
+## MCP Tools Created
 
 Based on your `meta.toolPrefix`, the server creates these tools:
 
-| Tool | Purpose |
-|------|---------|
-| `load_{prefix}_context` | Load expertise context for creating or improving content |
-| `review_{prefix}_content` | Get review criteria for critiquing existing content |
-| `get_{prefix}_guidelines` | Get formatted guidelines for specific topics |
-| `get_capabilities` | List all available tools |
+| Tool | Purpose | When to Use |
+|------|---------|-------------|
+| `load_{prefix}_context` | Load full expertise context | Creating or improving content |
+| `review_{prefix}_content` | Get review criteria | Critiquing existing content |
+| `get_{prefix}_guidelines` | Get formatted guidelines | Quick reference on specific topics |
+| `get_capabilities` | List available tools | Discovery |
+
+**Parameters for `load_{prefix}_context`:**
+- `detail_level`: `minimal` (~2k tokens), `standard` (~5k tokens), `comprehensive` (~10k tokens)
+- `topics`: Specific areas to load (`completeness`, `quality`, `principles`, etc.)
+- `include_examples`: Include good/bad examples (default: false)
 
 ## Key Concepts
 
@@ -140,13 +193,47 @@ whatIndicatesPresence:
   - "Explanation of why the reader should care"
 ```
 
-### Detail Levels
+### Adapting for a Different Domain
 
-Control token usage with `detail_level`:
+To create expertise for code review, recipes, or another domain:
 
-- **minimal**: Core checkpoints only (~2k tokens)
-- **standard**: Checkpoints + quality checks + principles (~5k tokens)
-- **comprehensive**: Everything including examples (~10k tokens)
+1. **Identify your principles** — What are the 3-5 most important guidelines in your domain?
+2. **Define checkpoints** — What must good content include? What do you always look for?
+3. **List quality checks** — What specific issues do you commonly flag?
+4. **Set the tone** — How should feedback be delivered?
+
+**Example adaptation for code review:**
+
+```yaml
+meta:
+  domain: "Code Review"
+  toolPrefix: "code"
+
+principles:
+  - name: "Readability"
+    guidelines:
+      - "Code should be understandable without comments"
+      - "Function names should describe what they do"
+
+checkpoints:
+  - id: "error_handling"
+    name: "Error Handling"
+    purpose: "Ensure failures are handled gracefully"
+    whatIndicatesPresence:
+      - "Try-catch blocks around operations that can fail"
+      - "Meaningful error messages"
+    commonProblems:
+      - "Silent failures"
+      - "Generic error messages"
+
+qualityChecks:
+  complexity:
+    whatToCheck: "Functions doing too many things"
+    whyItMatters: "Complex functions are hard to test and maintain"
+    examples:
+      - bad: "Function that fetches, validates, transforms, and saves"
+        good: "Separate functions for each responsibility"
+```
 
 ## Deployment Options
 
@@ -154,15 +241,15 @@ Control token usage with `detail_level`:
 
 The included `wrangler.jsonc` configures deployment to Cloudflare Workers with R2 storage. This works on Cloudflare's free tier for most use cases.
 
-### Other platforms
+### Other Platforms
 
-The server is standard JavaScript/TypeScript that runs anywhere. To deploy elsewhere:
+The server is standard TypeScript that runs anywhere. To deploy elsewhere:
 
-1. Replace the R2 storage calls in `src/index.ts` with your storage backend (filesystem, S3, database, etc.)
-2. Adapt the HTTP handling for your platform (Express, Hono, Fastify, etc.)
+1. Replace the R2 storage calls in `src/index.ts` with your storage backend (filesystem, S3, database)
+2. Adapt the HTTP handling for your platform (Express, Hono, Fastify)
 3. The MCP protocol handling uses `@modelcontextprotocol/sdk`, which is platform-agnostic
 
-### Local development
+### Local Development
 
 ```bash
 bun run dev
@@ -171,7 +258,7 @@ bun run dev
 
 ## Privacy and Threat Model
 
-This design keeps user content local. Here's how it works:
+This design keeps user content local.
 
 **What the server does:**
 - Stores and serves your expertise (YAML)
@@ -191,19 +278,14 @@ This design keeps user content local. Here's how it works:
 
 **Trust boundaries:**
 - The expertise content is public—anyone who knows the URL can query it
-- Consider what you put in the YAML; treat it as public documentation
-- The server operator (you) sees only tool requests, not user content
+- Treat your YAML as public documentation
+- Server logs may contain query parameters (checkpoint IDs, topic names), but not user content
 - If you add authentication, update the threat model accordingly
-
-**Limitations:**
-- Server logs may contain query parameters (checkpoint IDs, topic names)
-- If you embed sensitive information in the expertise YAML, it's exposed to anyone with the URL
-- The AI assistant making the request is trusted to not leak user content
 
 ## Documentation
 
-- [Schema Reference](docs/schema-reference.md) — Complete YAML format
-- [Deployment Guide](docs/deployment-guide.md) — Cloudflare setup details
+- [Schema Reference](docs/schema-reference.md) — Complete YAML format with all fields
+- [Deployment Guide](docs/deployment-guide.md) — Detailed Cloudflare setup
 
 ## MCP vs. Claude Code Skills
 
@@ -213,7 +295,7 @@ This design keeps user content local. Here's how it works:
 | Updates | Deploy to server | Sync local files |
 | Best for | Teams, shared expertise | Personal workflows |
 
-Use MCP when you want expertise accessible from multiple tools or shared across a team.
+Use MCP when you want expertise accessible from multiple AI tools or shared across a team.
 
 ## Author
 
