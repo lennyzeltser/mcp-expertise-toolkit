@@ -331,10 +331,7 @@ Use the [`mcp-remote`](https://www.npmjs.com/package/mcp-remote) package to conn
 
 ### Cloudflare Workers + R2 (Default)
 
-The included `wrangler.jsonc` configures deployment to [Cloudflare Workers](https://developers.cloudflare.com/workers/) with [R2 storage](https://developers.cloudflare.com/r2/). This works on Cloudflare's free tier for most use cases:
-
-- **Workers**: 100,000 requests/day free
-- **R2**: 10 GB storage + 10 million requests/month free
+The included `wrangler.jsonc` configures deployment to [Cloudflare Workers](https://developers.cloudflare.com/workers/) with [R2 storage](https://developers.cloudflare.com/r2/). Cloudflare's free tier is sufficient for most use cases.
 
 ### Custom Domain
 
@@ -453,4 +450,4 @@ Use MCP when you want expertise accessible from multiple AI tools or shared acro
 
 ## Author
 
-**Lenny Zeltser** is a cybersecurity leader who builds security programs, tools, and educational content. He serves as CISO at Axonius, created the REMnux malware analysis toolkit, and authored SANS courses on reverse-engineering malware and cybersecurity writing. He holds an MBA from MIT Sloan and a Computer Science degree from the University of Pennsylvania. More at [zeltser.com](https://zeltser.com).
+**[Lenny Zeltser](https://zeltser.com)**: Builder of security products and programs. Teacher of those who run them.
