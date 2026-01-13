@@ -78,7 +78,7 @@ You might use this to:
 │                     User's Content (stays local)                        │
 │                                                                         │
 │   The AI analyzes the user's content locally using your guidelines.     │
-│   User content is NEVER sent to your server — only tool requests.       │
+│   User content is not sent to your server — only tool requests.         │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 

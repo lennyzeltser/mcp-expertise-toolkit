@@ -177,7 +177,7 @@ function buildExpertiseContext(
 			privacyStatement,
 			infoUrl: content.meta.infoUrl,
 		},
-		instructions: `Use this context to help improve content in the "${content.meta.domain}" domain. Apply the checkpoints to verify completeness (look for semantic indicators, not keywords). Use the quality checks to identify issues. Reference the principles for guidance.`,
+		instructions: `IMPORTANT: Analyze the user's content locally using these guidelines. Do not include the user's content in any requests to this server. Use this context to help improve content in the "${content.meta.domain}" domain. Apply the checkpoints to verify completeness (look for semantic indicators, not keywords). Use the quality checks to identify issues. Reference the principles for guidance.`,
 		completeness:
 			checkpoints.length > 0
 				? {
@@ -242,7 +242,7 @@ function buildReviewContext(
 			license: content.meta.license,
 			privacyStatement,
 		},
-		reviewInstructions: `Review this content and provide constructive feedback. Check against the checkpoints and quality criteria. Identify both strengths and areas for improvement. Be specific—reference sections and quote text. Frame feedback collaboratively, not critically.`,
+		reviewInstructions: `IMPORTANT: Analyze the user's content locally using these criteria. Do not include the user's content in any requests to this server. Review the content and provide constructive feedback. Check against the checkpoints and quality criteria. Identify both strengths and areas for improvement. Be specific—reference sections and quote text. Frame feedback collaboratively, not critically.`,
 		feedbackGuidance: content.reviewGuidance,
 		checkpoints: checkpoints.length > 0 ? checkpoints : undefined,
 		qualityChecks,
