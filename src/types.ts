@@ -241,7 +241,7 @@ export const ExpertiseMetaSchema = z.object({
 	author: z.string().min(1, "Author is required"),
 	description: z.string().min(1, "Description is required"),
 	license: z.string().optional(),
-	infoUrl: z.string().url().optional().or(z.literal("")),
+	infoUrl: z.string().url().optional(),
 	toolPrefix: z
 		.string()
 		.regex(

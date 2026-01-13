@@ -140,11 +140,23 @@ function buildExpertiseContext(
 			? stripPrincipleExamples(content.principles)
 			: [];
 
-	// Build quality checks
-	const qualityChecks =
+	// Build quality checks (strip examples if not requested)
+	let qualityChecks =
 		allTopics || topics?.includes("quality")
 			? content.qualityChecks
 			: undefined;
+
+	if (qualityChecks && !includeExamples) {
+		const stripped: typeof qualityChecks = {};
+		for (const [key, check] of Object.entries(qualityChecks)) {
+			stripped[key] = {
+				whatToCheck: check.whatToCheck,
+				whyItMatters: check.whyItMatters,
+				examples: [], // Empty array instead of removing
+			};
+		}
+		qualityChecks = stripped;
+	}
 
 	// Build requirements
 	const requirements =
@@ -217,6 +229,10 @@ function buildReviewContext(
 	const privacyStatement =
 		content.meta.privacyStatement || DEFAULT_PRIVACY_STATEMENT;
 
+	// Only include principles when full context is requested (no specific filters)
+	// This keeps the review response focused when specific areas are requested
+	const includePrinciples = allCheckpoints && allFocus;
+
 	return {
 		version: "1.0.0",
 		generated: new Date().toISOString(),
@@ -230,7 +246,7 @@ function buildReviewContext(
 		feedbackGuidance: content.reviewGuidance,
 		checkpoints: checkpoints.length > 0 ? checkpoints : undefined,
 		qualityChecks,
-		principles: content.principles,
+		principles: includePrinciples ? content.principles : undefined,
 	};
 }
 
@@ -502,6 +518,7 @@ export class ExpertiseMCP extends McpAgent {
 					),
 				category: z
 					.string()
+					.max(100)
 					.optional()
 					.describe(
 						"Load guidance for a specific category only (saves tokens).",
@@ -573,13 +590,15 @@ export class ExpertiseMCP extends McpAgent {
 			`Get criteria for reviewing existing ${content.meta.domain.toLowerCase()} content. Returns checkpoints to verify, quality checks to apply, and guidance for constructive feedback. Your AI uses this to analyze your content locally—your content is never sent to this server.`,
 			{
 				checkpoints: z
-					.array(z.string())
+					.array(z.string().max(100))
+					.max(50)
 					.optional()
 					.describe(
 						"Specific checkpoint IDs to get criteria for. Omit for all.",
 					),
 				focus: z
-					.array(z.string())
+					.array(z.string().max(100))
+					.max(50)
 					.optional()
 					.describe(
 						"Quality check categories to focus on. Omit for all defined checks.",
@@ -629,6 +648,7 @@ export class ExpertiseMCP extends McpAgent {
 			{
 				topic: z
 					.string()
+					.max(50)
 					.optional()
 					.describe(
 						"Specific topic: 'summary', 'principles', 'checkpoints', 'quality', 'review'. Omit for full guidelines.",

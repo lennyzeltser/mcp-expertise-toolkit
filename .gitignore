@@ -24,6 +24,7 @@ npm-debug.log*
 
 # TypeScript
 *.tsbuildinfo
+worker-configuration.d.ts
 
 # Lock files (use bun.lockb)
 package-lock.json

@@ -6,12 +6,12 @@ version: "1.0.0"
 
 meta:
   domain: "Writing Feedback"
-  author: "Your Name"
+  author: "[REPLACE: Your Name or Organization]"
   description: "Expert guidance for improving written content. Covers clarity, structure, tone, and readability."
   license: "CC BY 4.0"
   toolPrefix: "writing"
   privacyStatement: "This tool returns guidelines for your AI to analyze locally. Your writing is never sent to this server."
-  infoUrl: ""
+  # infoUrl: "https://example.com/writing-guide"  # Uncomment and update if you have a URL
 
 # Core principles - high-level guidelines that apply broadly
 principles:
