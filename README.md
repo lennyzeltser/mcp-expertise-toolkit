@@ -2,7 +2,7 @@
 
 Turn your domain expertise into an AI-accessible knowledge base. This project is a template for building [Model Context Protocol](https://modelcontextprotocol.io) (MCP) servers that deliver feedback and guidance to AI assistants. Deploy it on [Cloudflare Workers](https://developers.cloudflare.com/agents/model-context-protocol/), and AI tools like Claude, Cursor, and others can query your expertise directly.
 
-Cloudflare is [well-suited for hosting remote MCP servers](https://blog.cloudflare.com/remote-model-context-protocol-servers-mcp/) — its Workers platform handles the transport layer, and the `agents` framework manages persistent client sessions.
+Cloudflare is [well-suited for hosting remote MCP servers](https://blog.cloudflare.com/remote-model-context-protocol-servers-mcp/). Its Workers platform handles the transport layer, and the `agents` framework manages persistent client sessions.
 
 **This is a template repository.** Fork it, customize it with your expertise, then deploy it.
 
@@ -358,6 +358,23 @@ The server is standard TypeScript that runs anywhere. To deploy elsewhere:
 1. Replace the R2 storage calls in `src/index.ts` with your storage backend (filesystem, S3, database)
 2. Adapt the HTTP handling for your platform (Express, Hono, Fastify)
 3. The MCP protocol handling uses [`@modelcontextprotocol/sdk`](https://github.com/modelcontextprotocol/typescript-sdk), which is platform-agnostic
+
+### Local Server (No Cloudflare)
+
+The `bun run dev` command runs a local server using Wrangler's emulation of Cloudflare Workers. For a standalone local server without any Cloudflare dependency:
+
+**What needs to change:**
+- Replace R2 storage with filesystem reads (`fs.readFileSync()`)
+- Replace the `McpAgent` class with direct `McpServer` + an HTTP framework (Express, Hono, Fastify)
+- Use standard Node.js/Bun HTTP server instead of Workers fetch handler
+
+**What stays the same:**
+- All type definitions (`src/types.ts`)
+- YAML parsing and Zod validation
+- Tool definitions and context builders
+- The `@modelcontextprotocol/sdk` package
+
+The core MCP logic is platform-agnostic. The Cloudflare-specific code is in the HTTP handling and storage layer.
 
 ---
 
