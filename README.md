@@ -223,7 +223,10 @@ Based on your `meta.toolPrefix`, the server creates these tools:
 | `include_examples` | Include good/bad examples (default: false) |
 | `category` | Filter to a specific content category |
 
-**See it in action:** The [content/DEMO.md](content/DEMO.md) file shows a realistic session where an AI assistant uses these tools to help a user improve their writing.
+**See it in action:** Each example includes a demo showing a realistic session:
+- [DEMO.md](content/DEMO.md) — Writing feedback (generic example)
+- [DEMO-readme-review.md](content/DEMO-readme-review.md) — README review for humans + AI assistants
+- [DEMO-bbq-scoring.md](content/DEMO-bbq-scoring.md) — BBQ competition judging
 
 ---
 
@@ -431,8 +434,12 @@ This design keeps user content local. Consider these characteristics before depl
 ```
 mcp-expertise-toolkit/
 ├── content/
-│   ├── expertise.yaml   # Working example (replace with your domain)
-│   └── DEMO.md          # Example session showing the server in action
+│   ├── expertise.yaml          # Default example (rename yours to this)
+│   ├── readme-review.yaml      # Example: README review for humans + AI
+│   ├── bbq-scoring.yaml        # Example: BBQ competition judging
+│   ├── DEMO.md                 # Demo session for default example
+│   ├── DEMO-readme-review.md   # Demo session for README review
+│   └── DEMO-bbq-scoring.md     # Demo session for BBQ scoring
 ├── src/
 │   ├── index.ts                # MCP server implementation
 │   └── types.ts                # TypeScript types and Zod schemas
@@ -444,7 +451,14 @@ mcp-expertise-toolkit/
 └── package.json
 ```
 
-**To customize:** Replace the contents of `content/expertise.yaml` with your own domain expertise. The included example demonstrates writing feedback. The server code in `src/` rarely needs changes.
+**Three examples included:**
+| Example | Domain | Why It's Interesting |
+|---------|--------|---------------------|
+| `expertise.yaml` | Writing feedback | Generic baseline example |
+| `readme-review.yaml` | README review | Shows expertise for both human readers AND AI coding assistants |
+| `bbq-scoring.yaml` | BBQ competition | Shows highly specialized criteria (KCBS judging) that generic AI doesn't know |
+
+**To customize:** Rename your expertise file to `expertise.yaml` (the server reads this filename from R2). The server code in `src/` rarely needs changes.
 
 ### Commands
 

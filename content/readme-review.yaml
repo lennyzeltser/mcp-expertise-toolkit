@@ -1,0 +1,264 @@
+# =============================================================================
+# EXAMPLE: Open Source README Review
+# =============================================================================
+#
+# Expert criteria for reviewing README files that work well for both
+# human readers AND AI coding assistants (Claude Code, Cursor, Aider, etc.).
+#
+# This example demonstrates domain expertise that generic AI lacks:
+# specific conventions for what AI agents need to understand a codebase.
+
+version: "1.0.0"
+
+meta:
+  domain: "README Review"
+  author: "[REPLACE: Your Name]"
+  description: "Expert review of open source README files for human readers and AI coding assistants."
+  toolPrefix: "readme"
+  infoUrl: "https://github.com/your-org/readme-standards"
+
+principles:
+  - name: "Answer 'What Is This?' First"
+    description: "Readers (human or AI) need context before details."
+    guidelines:
+      - "First sentence states what the project does, not what it is"
+      - "Avoid starting with 'This is a...' - show the value proposition"
+      - "Include a one-liner that works in search results and social shares"
+      - "If it's a CLI tool, show the command and output immediately"
+    examples:
+      - bad: "MyTool is a Node.js-based utility written in TypeScript."
+        good: "Convert any video to GIF from your terminal: `mytool video.mp4 output.gif`"
+        explanation: "Show what it does, not what it's built with"
+      - bad: "This repository contains the source code for..."
+        good: "Automatically resize images for social media platforms."
+        explanation: "Lead with the user benefit"
+
+  - name: "Optimize for Copy-Paste"
+    description: "Commands should work when pasted directly into a terminal."
+    guidelines:
+      - "Never combine explanation text with commands in the same code block"
+      - "Include the full command, not fragments that need assembly"
+      - "Show the expected output so readers know it worked"
+      - "Use environment variables with clear defaults, not placeholders readers must edit"
+    examples:
+      - bad: "Run npm install (or yarn) then npm start (with NODE_ENV=production for prod)"
+        good: |
+          npm install
+          npm start
+          # Visit http://localhost:3000
+        explanation: "Each step is a complete, runnable command"
+      - bad: "Set YOUR_API_KEY to your key"
+        good: "export API_KEY=sk-... # Get yours at https://example.com/keys"
+        explanation: "Show format and where to get the value"
+
+  - name: "Structure for Scanning"
+    description: "Most readers scan, they don't read linearly."
+    guidelines:
+      - "Use headers that answer questions: 'Installation', 'Usage', 'API'"
+      - "Put the most common use case first, edge cases later"
+      - "Keep paragraphs under 4 lines - walls of text get skipped"
+      - "Use tables for comparisons, lists for steps, code blocks for commands"
+
+  - name: "Enable AI Coding Assistants"
+    description: "AI agents read READMEs to understand how to work in your codebase."
+    guidelines:
+      - "Document the project structure with a file tree and brief descriptions"
+      - "Explain architecture decisions that aren't obvious from the code"
+      - "List common development tasks: how to run tests, build, lint, deploy"
+      - "Note any unconventional patterns: 'We use X instead of Y because...'"
+      - "Include a CLAUDE.md or similar file for AI-specific context"
+    examples:
+      - bad: "See the code for details on architecture."
+        good: |
+          ## Project Structure
+          src/
+            api/       # Express routes
+            services/  # Business logic (no HTTP awareness)
+            db/        # Database models and migrations
+        explanation: "AI agents need structure explained, not discovered"
+
+checkpoints:
+  - id: "opening"
+    name: "Opening Section"
+    purpose: "First 10 seconds determine if reader continues or leaves."
+    whatIndicatesPresence:
+      - "Project name and one-sentence description visible without scrolling"
+      - "Immediately clear what problem this solves"
+      - "For CLI/visual tools: screenshot or GIF showing it in action"
+    commonProblems:
+      - "Starting with badges instead of description"
+      - "Describing the technology stack before the purpose"
+      - "No visual for tools that have visual output"
+    exampleGood: |
+      # fastgif
+      Convert videos to optimized GIFs from your terminal.
+
+      ![Demo](demo.gif)
+
+      ```bash
+      fastgif input.mp4 -o output.gif --fps 15
+      ```
+    examplePoor: |
+      # fastgif
+
+      ![Build](badge.svg) ![Coverage](badge.svg) ![License](badge.svg)
+
+      ## About
+
+      fastgif is a command-line tool written in Rust that uses FFmpeg...
+
+  - id: "installation"
+    name: "Installation"
+    purpose: "Get the reader from zero to running as fast as possible."
+    whatIndicatesPresence:
+      - "Copy-paste commands that work without modification"
+      - "Prerequisites listed before install commands"
+      - "Multiple installation methods if applicable (brew, npm, binary)"
+    commonProblems:
+      - "Assuming reader has prerequisites installed"
+      - "Missing OS-specific instructions for cross-platform tools"
+      - "No verification step to confirm installation worked"
+    clarifyingQuestions:
+      - "What must be installed before this tool?"
+      - "Does it work on Windows, Mac, and Linux?"
+
+  - id: "quickstart"
+    name: "Quick Start / Basic Usage"
+    purpose: "Show the happy path before diving into details."
+    whatIndicatesPresence:
+      - "Minimal working example that demonstrates core functionality"
+      - "Expected output shown so reader knows what success looks like"
+      - "Common options explained with examples"
+    commonProblems:
+      - "Jumping straight to comprehensive API docs"
+      - "Examples require setup not yet explained"
+      - "No output shown - reader doesn't know if it worked"
+
+  - id: "project_structure"
+    name: "Project Structure"
+    purpose: "Help contributors and AI assistants navigate the codebase."
+    whatIndicatesPresence:
+      - "File tree showing directory layout"
+      - "Brief description of what each major directory contains"
+      - "Notes on where to find specific functionality"
+    commonProblems:
+      - "Missing entirely - assumes structure is self-evident"
+      - "Outdated structure that doesn't match current code"
+      - "Too detailed - listing every file instead of patterns"
+
+  - id: "ai_context"
+    name: "AI Assistant Context"
+    purpose: "Enable AI coding assistants to work effectively in this codebase."
+    whatIndicatesPresence:
+      - "Architecture decisions documented with rationale"
+      - "Development workflow commands (test, build, lint)"
+      - "Unconventional patterns explained"
+      - "CLAUDE.md or .cursorrules or similar AI context file mentioned"
+    commonProblems:
+      - "No mention of how AI assistants should approach the codebase"
+      - "Implicit conventions that only longtime contributors know"
+      - "Build/test commands buried in CI config, not documented"
+
+  - id: "configuration"
+    name: "Configuration"
+    purpose: "Show how to customize behavior for different use cases."
+    whatIndicatesPresence:
+      - "Environment variables listed with descriptions and defaults"
+      - "Config file format shown with annotated example"
+      - "Clear distinction between required and optional settings"
+    commonProblems:
+      - "Listing options without explaining when to use them"
+      - "No example config file"
+      - "Mixing config formats (env vars, files, flags) without clarity"
+
+qualityChecks:
+  missingContext:
+    whatToCheck: "Information assumed but not stated"
+    whyItMatters: "Readers (especially AI) can't infer prerequisites or conventions"
+    examples:
+      - bad: "Run the setup script to configure your environment."
+        good: "Run `./scripts/setup.sh` to install dependencies and create `.env` from `.env.example`."
+        explanation: "Specify what the script does and what it creates"
+      - bad: "Follow standard Go conventions."
+        good: "We follow the [Uber Go Style Guide](link) with these exceptions: ..."
+        explanation: "Link to the specific conventions you follow"
+
+  outdatedExamples:
+    whatToCheck: "Code examples that may not work with current version"
+    whyItMatters: "Nothing frustrates readers more than examples that fail"
+    examples:
+      - bad: "See the examples/ directory for usage patterns."
+        good: "These examples work with v2.x. For v1.x, see the [v1 branch](link)."
+        explanation: "Version your examples or note compatibility"
+
+  prematureAbstraction:
+    whatToCheck: "Jumping to advanced concepts before basics are clear"
+    whyItMatters: "Readers need the simple case before variations"
+    examples:
+      - bad: "MyTool supports plugins. Here's how to write one: ..."
+        good: "Basic usage: `mytool run`. For customization via plugins, see [Plugins](docs/plugins.md)."
+        explanation: "Cover the common case first, link to advanced topics"
+
+  fragileInstructions:
+    whatToCheck: "Commands or steps that break easily"
+    whyItMatters: "AI assistants especially struggle with incomplete commands"
+    examples:
+      - bad: "Set the appropriate environment variables."
+        good: |
+          export DATABASE_URL="postgres://localhost:5432/myapp"
+          export API_KEY="your-key-here"  # Get one at https://...
+        explanation: "Show exact format and where to get values"
+
+categories:
+  - id: "cli_tool"
+    name: "CLI Tool"
+    description: "Command-line applications"
+    indicators:
+      - "Primary interface is terminal commands"
+      - "May have flags, subcommands, or arguments"
+    considerations:
+      - "Show command and output together"
+      - "Document all flags with examples, not just descriptions"
+      - "Include shell completion setup if available"
+    commonPatterns:
+      - "Demo GIF at top → Install → Quick examples → Full reference"
+
+  - id: "library"
+    name: "Library / Package"
+    description: "Code meant to be imported into other projects"
+    indicators:
+      - "Primary use is importing/requiring in code"
+      - "Has an API that other code calls"
+    considerations:
+      - "Show import statement first"
+      - "Minimal working example before API reference"
+      - "TypeScript types or JSDoc for discoverability"
+    commonPatterns:
+      - "Install → Import → Basic example → API docs"
+
+  - id: "framework"
+    name: "Framework / Boilerplate"
+    description: "Starting point for building applications"
+    indicators:
+      - "User clones or scaffolds to start a project"
+      - "Provides structure and conventions"
+    considerations:
+      - "Getting started must be <5 minutes"
+      - "Explain the structure before customization"
+      - "Document the 'escape hatches' for customization"
+
+reviewGuidance:
+  purpose: "Help maintainers improve their README without overwhelming them."
+  feedbackStructure:
+    - "Start with what the README does well"
+    - "Focus on the highest-impact improvement first"
+    - "Provide specific rewrites, not just 'make it clearer'"
+    - "Note which suggestions help humans vs. AI assistants"
+  tone:
+    - "Remember the maintainer wrote this while building the actual project"
+    - "Suggest improvements as 'consider' not 'you should'"
+    - "Acknowledge that comprehensive docs take time"
+  reviewerMindset:
+    - "Read as a new user who found this via search"
+    - "Read as an AI assistant trying to help someone use this project"
+    - "Time yourself: can you get it running in 5 minutes?"

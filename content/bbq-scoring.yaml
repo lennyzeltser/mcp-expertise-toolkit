@@ -1,0 +1,316 @@
+# =============================================================================
+# EXAMPLE: BBQ Competition Scoring
+# =============================================================================
+#
+# Expert criteria for judging competition barbecue based on KCBS
+# (Kansas City Barbeque Society) standards and pitmaster experience.
+#
+# This example demonstrates domain expertise that generic AI lacks:
+# specific judging criteria that competition judges use to score entries.
+
+version: "1.0.0"
+
+meta:
+  domain: "BBQ Competition Scoring"
+  author: "[REPLACE: Your Name]"
+  description: "Expert judging criteria for competition barbecue. Covers appearance, taste, and tenderness across chicken, ribs, pork, and brisket."
+  toolPrefix: "bbq"
+  infoUrl: "https://www.kcbs.us/judging"
+
+principles:
+  - name: "Appearance Sets Expectations"
+    description: "Judges eat with their eyes first. Appearance score influences taste perception."
+    guidelines:
+      - "Color should be appetizing - mahogany for ribs, deep bark for brisket"
+      - "Sauce should complement, not mask - no pooling in the box"
+      - "Garnish (if used) must be approved parsley/cilantro/lettuce only"
+      - "Uniform pieces show attention to detail"
+      - "No sauce drips on the box liner"
+    examples:
+      - bad: "Heavy red sauce pooled in corner, hiding the meat color"
+        good: "Thin glaze of sauce showing caramelization, meat color visible through"
+        explanation: "Sauce enhances appearance; it shouldn't look like meat in a puddle"
+      - bad: "Ribs cut into varying sizes, some bones exposed"
+        good: "Six uniform rib pieces, clean bone presentation, consistent char"
+        explanation: "Uniformity signals that the cook has control over their process"
+
+  - name: "Taste Is Balance"
+    description: "Great competition BBQ balances smoke, seasoning, sauce, and meat flavor."
+    guidelines:
+      - "Smoke should enhance, not overpower - no bitter creosote taste"
+      - "Seasoning should complement the meat's natural flavor"
+      - "If using sauce, it should have depth - sweet, savory, tangy, maybe heat"
+      - "Salt level should be noticeable but not dominant"
+      - "Each bite should taste intentional, not accidental"
+    examples:
+      - bad: "Aggressive smoke flavor that tastes like licking an ashtray"
+        good: "Clean smoke with subtle sweetness, enhances the pork flavor"
+        explanation: "Over-smoking is a common mistake; the meat should taste like meat"
+      - bad: "One-note sweetness from commercial sauce"
+        good: "Layers of flavor: initial sweetness, savory middle, slight tang finish"
+        explanation: "Competition-level sauce has complexity and progression"
+
+  - name: "Tenderness Is Texture"
+    description: "Each meat has an ideal texture. Too tough or too soft both cost points."
+    guidelines:
+      - "Chicken should be tender but not mushy, skin should have some texture"
+      - "Ribs should pull clean from the bone with light tug, not fall off"
+      - "Pork should pull apart easily but have texture, not be paste"
+      - "Brisket should slice cleanly and pull apart with gentle tug"
+    examples:
+      - bad: "Ribs where meat falls off bone when picked up"
+        good: "Ribs where bite leaves clean teeth marks, meat releases from bone"
+        explanation: "Fall-off-the-bone is overcooked for competition; it should tug"
+      - bad: "Brisket that crumbles when sliced"
+        good: "Brisket that holds together when lifted, bends without breaking"
+        explanation: "The 'bend test' - properly cooked brisket flexes"
+
+  - name: "Turn-In Presentation"
+    description: "The turn-in box is your only communication with judges."
+    guidelines:
+      - "Box should look intentional, not hastily assembled"
+      - "Meat placed with best side up, consistent orientation"
+      - "Garnish creates contrast without overwhelming"
+      - "Nothing in the box that shouldn't be (no toothpicks, no unapproved items)"
+      - "Box should photograph well - judges often do"
+
+checkpoints:
+  - id: "appearance_color"
+    name: "Color and Bark"
+    purpose: "Proper color indicates correct cooking technique and temperature."
+    whatIndicatesPresence:
+      - "Mahogany to dark brown color on ribs and chicken"
+      - "Deep, almost black bark on brisket with visible seasoning"
+      - "Rendering visible - fat should look rendered, not raw"
+      - "Grill marks or char marks are even if present"
+    commonProblems:
+      - "Pale, undercooked appearance"
+      - "Burnt black spots indicating hot spots or flare-ups"
+      - "Raw-looking fat cap on brisket"
+      - "Chicken skin that looks rubbery or unrendered"
+
+  - id: "appearance_sauce"
+    name: "Sauce Application"
+    purpose: "Sauce should enhance appearance and add flavor, not mask the meat."
+    whatIndicatesPresence:
+      - "Thin, even glaze that shows meat texture underneath"
+      - "Sauce is set/tacky, not wet and dripping"
+      - "Caramelization visible on sauce layer"
+      - "No pooling in the box"
+    commonProblems:
+      - "Thick sauce hiding the meat entirely"
+      - "Sauce applied too late - still wet at turn-in"
+      - "Sauce pooled in corners of the box"
+      - "Inconsistent coverage - some pieces sauced, others not"
+
+  - id: "appearance_uniformity"
+    name: "Uniformity and Presentation"
+    purpose: "Uniform pieces show control and intentionality."
+    whatIndicatesPresence:
+      - "Pieces are similar in size and shape"
+      - "Consistent color across all pieces"
+      - "Arranged with intention - pattern or layout is deliberate"
+      - "Best side of each piece facing up"
+    commonProblems:
+      - "Mixed sizes - some pieces twice the size of others"
+      - "One piece clearly better than others (should have held back)"
+      - "Haphazard placement - looks like pieces were tossed in"
+
+  - id: "taste_smoke"
+    name: "Smoke Flavor"
+    purpose: "Smoke should enhance the meat without overpowering it."
+    whatIndicatesPresence:
+      - "Clean smoke flavor that complements the meat"
+      - "Smoke ring visible on cross-section (especially brisket)"
+      - "No bitter, acrid, or creosote flavors"
+      - "Smoke intensity appropriate to the meat type"
+    commonProblems:
+      - "Bitter creosote from dirty smoke or too much wood"
+      - "No smoke flavor at all - might as well be oven-cooked"
+      - "Overpowering smoke that masks the meat"
+      - "Off-flavors from inappropriate wood choice"
+
+  - id: "taste_seasoning"
+    name: "Seasoning and Salt"
+    purpose: "Seasoning should enhance the meat's natural flavor."
+    whatIndicatesPresence:
+      - "Salt level enhances but doesn't dominate"
+      - "Spice blend has depth and complexity"
+      - "Seasoning penetration - flavor throughout, not just surface"
+      - "Balance between rub and sauce flavors"
+    commonProblems:
+      - "Over-salted - first sensation is salt"
+      - "Under-seasoned - tastes flat"
+      - "Seasoning only on exterior, bland inside"
+      - "Rub and sauce fighting each other"
+
+  - id: "taste_sauce"
+    name: "Sauce Flavor"
+    purpose: "Sauce should add complexity without overwhelming the meat."
+    whatIndicatesPresence:
+      - "Sauce has multiple flavor notes - not one-dimensional"
+      - "Sauce complements the meat rather than masking it"
+      - "Proper balance of sweet, savory, tangy, and heat"
+      - "Sauce and rub work together"
+    commonProblems:
+      - "Cloyingly sweet commercial sauce"
+      - "Sauce that tastes like it came from a bottle (because it did)"
+      - "Too much sauce - can't taste the meat"
+      - "Sauce flavors that clash with the rub"
+
+  - id: "tenderness_chicken"
+    name: "Chicken Tenderness"
+    purpose: "Chicken should be fully cooked, moist, and have rendered skin."
+    whatIndicatesPresence:
+      - "Meat is moist and juicy when bitten"
+      - "Skin has texture - not rubbery"
+      - "Pulls from bone with slight resistance"
+      - "Thigh meat is tender but has structure"
+    commonProblems:
+      - "Rubbery, unrendered skin (competition's biggest chicken challenge)"
+      - "Dry, overcooked meat"
+      - "Undercooked near bone"
+      - "Mushy texture from brining too long"
+
+  - id: "tenderness_ribs"
+    name: "Rib Tenderness"
+    purpose: "Ribs should pull clean from the bone with gentle bite, not fall off."
+    whatIndicatesPresence:
+      - "Bite removes meat cleanly, leaving teeth marks"
+      - "Meat pulls from bone with slight resistance"
+      - "Texture is tender but not mushy"
+      - "Consistent tenderness across the rack"
+    commonProblems:
+      - "Fall-off-the-bone overcooked texture"
+      - "Tough, chewy undercooked ribs"
+      - "Mushy from over-wrapping or too much liquid"
+      - "Inconsistent - some bones tougher than others"
+
+  - id: "tenderness_pork"
+    name: "Pork Tenderness"
+    purpose: "Pulled pork should shred easily but retain texture."
+    whatIndicatesPresence:
+      - "Pulls apart with gentle pressure"
+      - "Visible texture - not paste"
+      - "Bark pieces provide texture contrast"
+      - "Moist throughout"
+    commonProblems:
+      - "Too fine - processed into paste when pulling"
+      - "Tough chunks that didn't break down"
+      - "Dry from cooking too hot or too long"
+      - "No bark included - missing texture"
+
+  - id: "tenderness_brisket"
+    name: "Brisket Tenderness"
+    purpose: "Brisket should slice cleanly and be tender in both flat and point."
+    whatIndicatesPresence:
+      - "Slices hold together when lifted"
+      - "Gentle pull separates the fibers"
+      - "Passes the 'bend test' - flexes without breaking"
+      - "Point and flat both properly rendered"
+    commonProblems:
+      - "Flat is dry while point is perfect (most common)"
+      - "Crumbly, overcooked texture"
+      - "Tough, chewy undercooked slices"
+      - "Fat not properly rendered"
+
+qualityChecks:
+  overcooked:
+    whatToCheck: "Signs of cooking too long or at too high temperature"
+    whyItMatters: "Overcooked BBQ loses moisture, texture, and often scores worse than undercooked"
+    examples:
+      - bad: "Ribs where meat slides off bone when touched"
+        good: "Ribs where bite pulls meat cleanly, leaving teeth marks"
+        explanation: "Competition tenderness is between tough and falling apart"
+      - bad: "Brisket that crumbles when sliced"
+        good: "Brisket that bends and flexes when held by the end"
+
+  underseasoned:
+    whatToCheck: "Flat or bland flavor from insufficient seasoning"
+    whyItMatters: "Competition BBQ competes against heavily seasoned entries"
+    examples:
+      - bad: "Can only taste smoke and meat - no spice presence"
+        good: "First bite has salt, then sweetness, then smoke, then heat"
+        explanation: "Layers of flavor indicate attention to seasoning"
+
+  sauceOverload:
+    whatToCheck: "Excessive sauce that masks the meat"
+    whyItMatters: "Judges want to taste your meat, not just your sauce"
+    examples:
+      - bad: "Thick layer of sauce where you can't see meat texture"
+        good: "Thin glaze that adds shine and flavor while showing the meat"
+
+categories:
+  - id: "chicken"
+    name: "Chicken"
+    description: "Typically thighs, judged on skin rendering and moistness"
+    indicators:
+      - "Turn-in is chicken pieces"
+      - "Often thighs, sometimes whole legs or breasts"
+    considerations:
+      - "Skin MUST be rendered - rubbery skin is automatic point deduction"
+      - "Consider skinless or scored skin to help rendering"
+      - "White meat dries out faster than dark"
+    commonPatterns:
+      - "High-heat finish for skin texture"
+      - "Indirect cook then direct sear"
+
+  - id: "ribs"
+    name: "Pork Ribs"
+    description: "Spare ribs or baby backs, judged on tenderness and bite"
+    indicators:
+      - "St. Louis cut spares or baby back ribs"
+      - "Individual bones or sections"
+    considerations:
+      - "Spare ribs more forgiving than baby backs"
+      - "The 'bend test' indicates readiness"
+      - "Competition bite: clean teeth marks, not fall-off-bone"
+    commonPatterns:
+      - "3-2-1 method (spares) or 2-2-1 (baby backs) as starting point"
+      - "Finish on grill for sauce set"
+
+  - id: "pork"
+    name: "Pulled Pork"
+    description: "Pork shoulder/butt, judged on tenderness, moisture, and bark"
+    indicators:
+      - "Pulled/shredded pork presentation"
+      - "May include bark pieces"
+    considerations:
+      - "Include bark pieces for texture"
+      - "Money muscle (tube of meat) often presented separately"
+      - "Don't over-process into paste"
+    commonPatterns:
+      - "Low and slow until 195-203°F internal"
+      - "Rest before pulling"
+
+  - id: "brisket"
+    name: "Beef Brisket"
+    description: "Whole packer brisket, judged on slice tenderness and smoke ring"
+    indicators:
+      - "Sliced brisket, usually from the flat"
+      - "May include point (burnt ends)"
+    considerations:
+      - "Flat and point cook at different rates"
+      - "Smoke ring shows proper low-and-slow technique"
+      - "Slice against the grain"
+    commonPatterns:
+      - "Trim fat cap to 1/4 inch"
+      - "Rest 1-4 hours before slicing"
+      - "Present flat slices, burnt ends optional"
+
+reviewGuidance:
+  purpose: "Help cooks understand why entries scored the way they did."
+  feedbackStructure:
+    - "Score appearance, taste, and tenderness separately"
+    - "Note what worked well before what needs improvement"
+    - "Be specific: 'oversalted' not just 'seasoning issue'"
+    - "Compare to competition standard, not backyard expectations"
+  tone:
+    - "Remember this cook invested hours and money into this entry"
+    - "Frame feedback as 'next time, consider...' not 'you failed at...'"
+    - "Acknowledge that competition BBQ is hard"
+  reviewerMindset:
+    - "You're comparing to the best entry you've ever had in this category"
+    - "A 9 means 'excellent,' not 'nothing wrong'"
+    - "Average competition scores are around 7, not 9"
+    - "Judge this entry, not the cook's reputation"
