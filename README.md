@@ -49,8 +49,8 @@ You might use this to:
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                          Cloudflare R2                                  │
 │                                                                         │
-│   Stores your expertise.yaml file. Only your Worker can access it.      │
-│   The Worker caches the content in memory for one hour.                 │
+│   Stores your expertise YAML files. Upload one or more .yaml files.     │
+│   The Worker discovers all files and creates tools for each domain.     │
 └──────────────────────────────┬──────────────────────────────────────────┘
                                │
                                ▼
@@ -98,7 +98,11 @@ bun install  # or: npm install
 
 ### 2. Create Your Expertise File
 
-Edit `content/expertise.yaml`. This file contains a complete working example (writing feedback) that you should replace with your own domain expertise. You can also direct your AI assistant to create the content based on knowledge you share with it.
+Create a `.yaml` file in the `content/` directory. See the included examples:
+- `readme-review.yaml` — README review for humans and AI assistants
+- `bbq-scoring.yaml` — BBQ competition judging (KCBS standards)
+
+Each file has a `toolPrefix` that determines its tool names. You can deploy one file or multiple files to the same server.
 
 ### 3. Validate
 
@@ -119,10 +123,14 @@ npx wrangler login
 # Create R2 bucket for your expertise file
 npx wrangler r2 bucket create mcp-expertise-data
 
-# Upload your expertise file
-npx wrangler r2 object put mcp-expertise-data/expertise.yaml \
-  --file content/expertise.yaml \
+# Upload your expertise file(s)
+npx wrangler r2 object put mcp-expertise-data/your-domain.yaml \
+  --file content/your-domain.yaml \
   --content-type "text/yaml"
+
+# To upload multiple domains:
+# npx wrangler r2 object put mcp-expertise-data/another-domain.yaml \
+#   --file content/another-domain.yaml --content-type "text/yaml"
 
 # Deploy the Worker
 bun run deploy
@@ -224,7 +232,6 @@ Based on your `meta.toolPrefix`, the server creates these tools:
 | `category` | Filter to a specific content category |
 
 **See it in action:** Each example includes a demo showing a realistic session:
-- [DEMO.md](content/DEMO.md) — Writing feedback (generic example)
 - [DEMO-readme-review.md](content/DEMO-readme-review.md) — README review for humans + AI assistants
 - [DEMO-bbq-scoring.md](content/DEMO-bbq-scoring.md) — BBQ competition judging
 
@@ -434,10 +441,8 @@ This design keeps user content local. Consider these characteristics before depl
 ```
 mcp-expertise-toolkit/
 ├── content/
-│   ├── expertise.yaml          # Default example (rename yours to this)
 │   ├── readme-review.yaml      # Example: README review for humans + AI
 │   ├── bbq-scoring.yaml        # Example: BBQ competition judging
-│   ├── DEMO.md                 # Demo session for default example
 │   ├── DEMO-readme-review.md   # Demo session for README review
 │   └── DEMO-bbq-scoring.md     # Demo session for BBQ scoring
 ├── src/
@@ -451,14 +456,13 @@ mcp-expertise-toolkit/
 └── package.json
 ```
 
-**Three examples included:**
+**Examples included:**
 | Example | Domain | Why It's Interesting |
 |---------|--------|---------------------|
-| `expertise.yaml` | Writing feedback | Generic baseline example |
-| `readme-review.yaml` | README review | Shows expertise for both human readers AND AI coding assistants |
-| `bbq-scoring.yaml` | BBQ competition | Shows highly specialized criteria (KCBS judging) that generic AI doesn't know |
+| `readme-review.yaml` | README review | Expertise for both human readers AND AI coding assistants |
+| `bbq-scoring.yaml` | BBQ competition | Highly specialized criteria (KCBS judging) that generic AI doesn't know |
 
-**To customize:** Rename your expertise file to `expertise.yaml` (the server reads this filename from R2). The server code in `src/` rarely needs changes.
+**Multi-domain support:** The server automatically discovers all `.yaml` files in the R2 bucket and creates tools for each. Each file's `toolPrefix` must be unique. You can deploy a single domain or combine multiple domains in one server.
 
 ### Commands
 

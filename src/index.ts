@@ -22,32 +22,42 @@ interface Env extends Cloudflare.Env {
 
 // Configuration
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
-const R2_EXPERTISE_KEY = "expertise.yaml";
 
-// Cache for expertise content
-let cachedContent: ExpertiseContent | null = null;
-let cacheTimestamp = 0;
+// Cache for expertise content (keyed by filename)
+const expertiseCache = new Map<
+	string,
+	{ content: ExpertiseContent; timestamp: number }
+>();
 
 /**
- * Fetch and cache the expertise content from R2 bucket.
- * Reads YAML directly and parses at runtime.
+ * List all YAML files in the R2 bucket.
  */
-async function getExpertiseContent(
+async function listExpertiseFiles(bucket: R2Bucket): Promise<string[]> {
+	const list = await bucket.list();
+	return list.objects
+		.map((obj) => obj.key)
+		.filter((key) => key.endsWith(".yaml"));
+}
+
+/**
+ * Load and validate a single expertise YAML file from R2.
+ */
+async function loadExpertiseFile(
 	bucket: R2Bucket,
+	filename: string,
 ): Promise<ExpertiseContent | null> {
 	const now = Date.now();
 
 	// Return cached content if still valid
-	if (cachedContent && now - cacheTimestamp < CACHE_TTL_MS) {
-		return cachedContent;
+	const cached = expertiseCache.get(filename);
+	if (cached && now - cached.timestamp < CACHE_TTL_MS) {
+		return cached.content;
 	}
 
 	try {
-		const object = await bucket.get(R2_EXPERTISE_KEY);
+		const object = await bucket.get(filename);
 		if (!object) {
-			console.log(
-				`Expertise file not found in R2 bucket: ${R2_EXPERTISE_KEY}`,
-			);
+			console.log(`Expertise file not found in R2 bucket: ${filename}`);
 			return null;
 		}
 
@@ -57,17 +67,40 @@ async function getExpertiseContent(
 		// Validate with Zod schema
 		const result = ExpertiseContentSchema.safeParse(data);
 		if (!result.success) {
-			console.error("Expertise content validation failed:", result.error.issues);
+			console.error(
+				`Expertise content validation failed for ${filename}:`,
+				result.error.issues,
+			);
 			return null;
 		}
 
-		cachedContent = result.data as ExpertiseContent;
-		cacheTimestamp = now;
-		return cachedContent;
+		const content = result.data as ExpertiseContent;
+		expertiseCache.set(filename, { content, timestamp: now });
+		return content;
 	} catch (error) {
-		console.error("Error loading expertise content:", error);
+		console.error(`Error loading expertise content from ${filename}:`, error);
 		return null;
 	}
+}
+
+/**
+ * Load all expertise files from R2 bucket.
+ * Returns array of loaded content with their filenames.
+ */
+async function getAllExpertiseContent(
+	bucket: R2Bucket,
+): Promise<{ filename: string; content: ExpertiseContent }[]> {
+	const files = await listExpertiseFiles(bucket);
+	const results: { filename: string; content: ExpertiseContent }[] = [];
+
+	for (const filename of files) {
+		const content = await loadExpertiseFile(bucket, filename);
+		if (content) {
+			results.push({ filename, content });
+		}
+	}
+
+	return results;
 }
 
 // ============================================================================
@@ -408,38 +441,66 @@ function formatGuidelines(content: ExpertiseContent, topic: string): string {
 }
 
 /**
- * Format server capabilities for discovery.
+ * Format capabilities for a single domain.
  */
-function formatCapabilities(content: ExpertiseContent): string {
+function formatDomainCapabilities(content: ExpertiseContent): {
+	domain: string;
+	prefix: string;
+	description: string;
+	tools: { name: string; description: string }[];
+} {
 	const prefix = getToolPrefix(content.meta);
+	return {
+		domain: content.meta.domain,
+		prefix,
+		description: content.meta.description,
+		tools: [
+			{
+				name: `load_${prefix}_context`,
+				description: `Load ${content.meta.domain} context for local analysis`,
+			},
+			{
+				name: `review_${prefix}_content`,
+				description: `Get review criteria for ${content.meta.domain.toLowerCase()} content`,
+			},
+			{
+				name: `get_${prefix}_guidelines`,
+				description: `Get ${content.meta.domain.toLowerCase()} guidelines as markdown`,
+			},
+		],
+	};
+}
+
+/**
+ * Format all capabilities as readable markdown.
+ */
+function formatAllCapabilities(
+	allContent: { filename: string; content: ExpertiseContent }[],
+): string {
 	const lines = [
-		`# ${content.meta.domain} MCP Server Capabilities`,
+		"# MCP Expertise Server Capabilities",
 		"",
-		`**Author:** ${content.meta.author}`,
-		`**Description:** ${content.meta.description}`,
+		`This server provides expertise in ${allContent.length} domain${allContent.length === 1 ? "" : "s"}:`,
 		"",
-		"## Available Tools",
-		"",
-		`### load_${prefix}_context`,
-		"Load expertise context for local AI analysis. Use when creating or improving content.",
-		"- `detail_level`: minimal (~2k tokens), standard (~5k tokens), comprehensive (~10k tokens)",
-		"- Your content is analyzed locally—never sent to this server.",
-		"",
-		`### review_${prefix}_content`,
-		"Get review criteria for critiquing existing content.",
-		"- Returns checkpoints, quality checks, and feedback guidance.",
-		"- Your content stays local—the server only provides criteria.",
-		"",
-		`### get_${prefix}_guidelines`,
-		"Get formatted guidelines for a specific topic.",
-		"- Topics: summary, principles, checkpoints, quality, review",
-		"",
-		"### get_capabilities",
-		"List all available tools (this output).",
-		"",
-		"## Privacy",
-		content.meta.privacyStatement || DEFAULT_PRIVACY_STATEMENT,
 	];
+
+	for (const { content } of allContent) {
+		const prefix = getToolPrefix(content.meta);
+		lines.push(`## ${content.meta.domain}`);
+		lines.push(`**Author:** ${content.meta.author}`);
+		lines.push(`**Description:** ${content.meta.description}`);
+		lines.push("");
+		lines.push("**Tools:**");
+		lines.push(`- \`load_${prefix}_context\` — Load context for creating/improving content`);
+		lines.push(`- \`review_${prefix}_content\` — Get criteria for reviewing content`);
+		lines.push(`- \`get_${prefix}_guidelines\` — Get guidelines as markdown`);
+		lines.push("");
+	}
+
+	lines.push("## Privacy");
+	lines.push(DEFAULT_PRIVACY_STATEMENT);
+	lines.push("");
+	lines.push("Your content is analyzed locally by your AI assistant. It is never sent to this server.");
 
 	return lines.join("\n");
 }
@@ -457,10 +518,10 @@ export class ExpertiseMCP extends McpAgent {
 	async init() {
 		const bucket = (this.env as Env).EXPERTISE_BUCKET;
 
-		// Load expertise content
-		const content = await getExpertiseContent(bucket);
+		// Load all expertise files
+		const allContent = await getAllExpertiseContent(bucket);
 
-		if (!content) {
+		if (allContent.length === 0) {
 			// Register a single tool that explains the setup is incomplete
 			this.server.tool(
 				"get_status",
@@ -470,7 +531,7 @@ export class ExpertiseMCP extends McpAgent {
 					content: [
 						{
 							type: "text",
-							text: `Expertise content not found. Please upload your expertise.yaml file to the R2 bucket.\n\nSee the README for setup instructions.`,
+							text: `No expertise files found. Please upload one or more .yaml files to the R2 bucket.\n\nSee the README for setup instructions.`,
 						},
 					],
 					isError: true,
@@ -479,14 +540,70 @@ export class ExpertiseMCP extends McpAgent {
 			return;
 		}
 
-		const prefix = getToolPrefix(content.meta);
+		// Track registered prefixes to detect collisions
+		const registeredPrefixes = new Set<string>();
+		const warnings: string[] = [];
 
-		// Update server name based on content
-		this.server = new McpServer({
-			name: `${content.meta.domain} MCP Server`,
-			version: "1.0.0",
-		});
+		// Register tools for each expertise domain
+		for (const { filename, content } of allContent) {
+			const prefix = getToolPrefix(content.meta);
 
+			// Check for prefix collision
+			if (registeredPrefixes.has(prefix)) {
+				warnings.push(
+					`Skipped ${filename}: toolPrefix "${prefix}" already registered by another file`,
+				);
+				console.warn(
+					`Skipping ${filename}: toolPrefix "${prefix}" collides with an already registered domain`,
+				);
+				continue;
+			}
+			registeredPrefixes.add(prefix);
+
+			// Register tools for this domain
+			this.registerDomainTools(bucket, filename, content, prefix);
+		}
+
+		// Register unified get_capabilities tool
+		this.server.tool(
+			"get_capabilities",
+			"List all expertise domains and tools available from this MCP server.",
+			{},
+			async () => {
+				try {
+					const currentContent = await getAllExpertiseContent(bucket);
+					if (currentContent.length === 0) {
+						return {
+							content: [{ type: "text", text: "No expertise domains loaded." }],
+							isError: true,
+						};
+					}
+
+					const capabilities = formatAllCapabilities(currentContent);
+					return {
+						content: [{ type: "text", text: capabilities }],
+					};
+				} catch (error) {
+					const message =
+						error instanceof Error ? error.message : "Unknown error";
+					return {
+						content: [{ type: "text", text: `Error: ${message}` }],
+						isError: true,
+					};
+				}
+			},
+		);
+	}
+
+	/**
+	 * Register the three domain-specific tools for a single expertise file.
+	 */
+	private registerDomainTools(
+		bucket: R2Bucket,
+		filename: string,
+		content: ExpertiseContent,
+		prefix: string,
+	) {
 		// ================================================================
 		// Tool 1: Load Expertise Context
 		// ================================================================
@@ -532,7 +649,7 @@ export class ExpertiseMCP extends McpAgent {
 			},
 			async ({ detail_level, topics, category, include_examples }) => {
 				try {
-					const currentContent = await getExpertiseContent(bucket);
+					const currentContent = await loadExpertiseFile(bucket, filename);
 					if (!currentContent) {
 						return {
 							content: [
@@ -606,7 +723,7 @@ export class ExpertiseMCP extends McpAgent {
 			},
 			async ({ checkpoints, focus }) => {
 				try {
-					const currentContent = await getExpertiseContent(bucket);
+					const currentContent = await loadExpertiseFile(bucket, filename);
 					if (!currentContent) {
 						return {
 							content: [
@@ -656,7 +773,7 @@ export class ExpertiseMCP extends McpAgent {
 			},
 			async ({ topic }) => {
 				try {
-					const currentContent = await getExpertiseContent(bucket);
+					const currentContent = await loadExpertiseFile(bucket, filename);
 					if (!currentContent) {
 						return {
 							content: [
@@ -672,38 +789,6 @@ export class ExpertiseMCP extends McpAgent {
 					const formatted = formatGuidelines(currentContent, topic || "all");
 					return {
 						content: [{ type: "text", text: formatted }],
-					};
-				} catch (error) {
-					const message =
-						error instanceof Error ? error.message : "Unknown error";
-					return {
-						content: [{ type: "text", text: `Error: ${message}` }],
-						isError: true,
-					};
-				}
-			},
-		);
-
-		// ================================================================
-		// Tool 4: Get Capabilities
-		// ================================================================
-		this.server.tool(
-			"get_capabilities",
-			`List all capabilities and tools available from this ${content.meta.domain} MCP server.`,
-			{},
-			async () => {
-				try {
-					const currentContent = await getExpertiseContent(bucket);
-					if (!currentContent) {
-						return {
-							content: [{ type: "text", text: "Expertise content not available." }],
-							isError: true,
-						};
-					}
-
-					const capabilities = formatCapabilities(currentContent);
-					return {
-						content: [{ type: "text", text: capabilities }],
 					};
 				} catch (error) {
 					const message =
@@ -739,15 +824,15 @@ export default {
 		// Health check / info endpoint
 		if (url.pathname === "/" || url.pathname === "/health") {
 			try {
-				const content = await getExpertiseContent(env.EXPERTISE_BUCKET);
+				const allContent = await getAllExpertiseContent(env.EXPERTISE_BUCKET);
 
-				if (!content) {
+				if (allContent.length === 0) {
 					return new Response(
 						JSON.stringify({
 							name: "MCP Expertise Server",
 							version: "1.0.0",
 							status: "unconfigured",
-							message: "Upload expertise.yaml to R2 bucket to configure",
+							message: "Upload one or more .yaml files to R2 bucket to configure",
 						}),
 						{
 							status: 503,
@@ -756,26 +841,38 @@ export default {
 					);
 				}
 
-				const prefix = getToolPrefix(content.meta);
-
-				return new Response(
-					JSON.stringify({
-						name: `${content.meta.domain} MCP Server`,
-						version: "1.0.0",
-						status: "ready",
+				// Build domain info
+				const domains = allContent.map(({ filename, content }) => {
+					const prefix = getToolPrefix(content.meta);
+					return {
 						domain: content.meta.domain,
 						author: content.meta.author,
 						description: content.meta.description,
-						endpoints: {
-							sse: "/sse",
-							mcp: "/mcp",
-						},
+						file: filename,
 						tools: [
 							`load_${prefix}_context`,
 							`review_${prefix}_content`,
 							`get_${prefix}_guidelines`,
-							"get_capabilities",
 						],
+					};
+				});
+
+				// Collect all tool names
+				const allTools = domains.flatMap((d) => d.tools);
+				allTools.push("get_capabilities");
+
+				return new Response(
+					JSON.stringify({
+						name: "MCP Expertise Server",
+						version: "1.0.0",
+						status: "ready",
+						domainsLoaded: allContent.length,
+						domains,
+						endpoints: {
+							sse: "/sse",
+							mcp: "/mcp",
+						},
+						tools: allTools,
 					}),
 					{
 						headers: { "Content-Type": "application/json" },
