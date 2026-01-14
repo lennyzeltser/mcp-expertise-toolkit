@@ -445,8 +445,10 @@ This design keeps user content local. Consider these characteristics before depl
 ```
 mcp-expertise-toolkit/
 ├── content/
-│   ├── readme-review.yaml      # Example: README review for humans + AI
-│   ├── bbq-scoring.yaml        # Example: BBQ competition judging
+│   ├── _starter-template.yaml  # Start here: minimal template for your expertise
+│   ├── README.md               # Guide to creating expertise files
+│   ├── readme-review.yaml      # Sample: README review for humans + AI
+│   ├── bbq-scoring.yaml        # Sample: BBQ competition judging
 │   ├── DEMO-readme-review.md   # Demo session for README review
 │   └── DEMO-bbq-scoring.md     # Demo session for BBQ scoring
 ├── src/
@@ -460,9 +462,9 @@ mcp-expertise-toolkit/
 └── package.json
 ```
 
-**Examples included:**
-| Example | Domain | Why It's Interesting |
-|---------|--------|---------------------|
+**Sample files included:**
+| File | Domain | Why It's Interesting |
+|------|--------|---------------------|
 | `readme-review.yaml` | README review | Expertise for both human readers AND AI coding assistants |
 | `bbq-scoring.yaml` | BBQ competition | Highly specialized criteria (KCBS judging) that generic AI doesn't know |
 
