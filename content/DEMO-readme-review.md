@@ -55,155 +55,95 @@ The AI recognizes this as a README review task and calls the MCP server:
 
 Using the expertise from the server, the assistant responds:
 
-> **README Review: jsonfix**
->
-> **What works well:**
-> - Clear, short project name
-> - License included
-> - Has the essential sections (install, usage)
->
-> **High-impact improvements:**
->
-> 1. **Lead with what it does, not what it is**
->
->    Your first line tells me it's "a JSON formatting and validation tool" but not why I'd want it. Consider opening with the value:
->
->    *Current:* "A JSON formatting and validation tool."
->
->    *Consider:* "Fix malformed JSON and format it consistently: `jsonfix input.json`"
->
->    Show the command and what happens—this helps both humans scanning quickly and AI assistants understanding the interface.
->
-> 2. **Make installation copy-paste ready**
->
->    The prerequisites and install are in prose, requiring readers to extract the commands:
->
->    *Current:* "First make sure you have Node.js installed (version 18 or higher is recommended). Then you can install globally:"
->
->    *Consider:*
->    ```
->    # Requires Node.js 18+
->    npm install -g jsonfix
->
->    # Verify installation
->    jsonfix --version
->    ```
->
-> 3. **Show the happy path with output**
->
->    "Run it on a file to see the output" doesn't show what success looks like:
->
->    *Consider:*
->    ```bash
->    $ jsonfix malformed.json
->    ✓ Fixed 3 issues:
->      - Added missing comma (line 4)
->      - Removed trailing comma (line 12)
->      - Quoted unquoted key (line 7)
->
->    $ jsonfix --format input.json > output.json
->    ```
->
-> 4. **Add project structure for AI assistants**
->
->    "See the code for architecture details" doesn't help AI coding assistants (or new contributors) navigate your codebase. Consider adding:
->
->    ```
->    ## Project Structure
->
->    src/
->      cli.ts        # Command-line interface
->      parser.ts     # JSON parsing and error recovery
->      formatter.ts  # Output formatting
->    ```
->
-> 5. **Document development workflow**
->
->    AI assistants need to know how to run tests and build. Instead of "Use npm test to run the tests":
->
->    ```
->    ## Development
->
->    git clone https://github.com/you/jsonfix && cd jsonfix
->    npm install
->    npm test        # Run tests
->    npm run build   # Compile TypeScript
->    npm run lint    # Check code style
->    ```
+---
 
-## Suggested Revision
+**README Review: jsonfix**
 
-```markdown
-# jsonfix
+**What works well:**
+- Clear, short project name
+- License included
+- Has the essential sections (install, usage)
 
-Fix malformed JSON and format it consistently from your terminal.
+**High-impact improvements:**
 
-```bash
-jsonfix broken.json
-✓ Fixed 3 issues, output written to broken.json
+**1. Lead with what it does, not what it is**
+
+Your first line tells me it's "a JSON formatting and validation tool" but not why I'd want it.
+
+*Current:* "A JSON formatting and validation tool."
+
+*Consider:* "Fix malformed JSON and format it consistently: `jsonfix input.json`"
+
+Show the command and what happens—this helps both humans scanning quickly and AI assistants understanding the interface.
+
+**2. Make installation copy-paste ready**
+
+The prerequisites and install are in prose, requiring readers to extract the commands.
+
+*Current:* "First make sure you have Node.js installed (version 18 or higher is recommended). Then you can install globally:"
+
+*Consider:* Separate comment lines from commands, add a verification step:
 ```
-
-## Installation
-
-```bash
 # Requires Node.js 18+
 npm install -g jsonfix
 
-# Verify it worked
+# Verify installation
 jsonfix --version
 ```
 
-## Usage
+**3. Show the happy path with output**
 
-```bash
-# Fix and overwrite
-jsonfix input.json
+"Run it on a file to see the output" doesn't show what success looks like.
 
-# Fix and output to new file
-jsonfix input.json -o output.json
-
-# Just validate (no changes)
-jsonfix --check input.json
+*Consider:* Show the command AND what it outputs:
+```
+$ jsonfix malformed.json
+✓ Fixed 3 issues:
+  - Added missing comma (line 4)
+  - Removed trailing comma (line 12)
+  - Quoted unquoted key (line 7)
 ```
 
-## Project Structure
+**4. Add project structure for AI assistants**
 
+"See the code for architecture details" doesn't help AI coding assistants (or new contributors) navigate your codebase.
+
+*Consider:* Add a file tree with brief descriptions:
 ```
 src/
-  cli.ts        # Command-line interface, argument parsing
-  parser.ts     # JSON parsing with error recovery
-  formatter.ts  # Consistent output formatting
+  cli.ts        # Command-line interface
+  parser.ts     # JSON parsing and error recovery
+  formatter.ts  # Output formatting
 ```
 
-## Development
+**5. Document development workflow**
 
-```bash
-git clone https://github.com/you/jsonfix && cd jsonfix
-npm install
+AI assistants need to know how to run tests and build. Prose like "Use npm test to run the tests" requires parsing.
+
+*Consider:* Explicit commands with comments:
+```
 npm test        # Run tests
 npm run build   # Compile TypeScript
+npm run lint    # Check code style
 ```
 
-## License
+---
 
-MIT
-```
+## How Generic AI Would Miss This
 
-## How Guidelines Shaped the Feedback
+Generic AI gives generic advice. Here's what specialized README expertise adds:
 
-The feedback above maps directly to guidelines in `readme-review.yaml`:
+| What the README Has | Generic AI Response | Expert Response |
+|---------------------|--------------------|-----------------------------|
+| "A JSON formatting and validation tool" | "Clear description" | "Leads with what it *is*, not what it *does*—show the command" |
+| "First make sure you have Node.js installed..." | "Good prerequisites" | "Prose requires parsing—use copy-paste code blocks" |
+| "Run it on a file to see the output" | "Explains usage" | "Doesn't show what success looks like—include example output" |
+| "See the code for architecture details" | "Points to source" | "Useless for AI assistants—add explicit project structure" |
+| "Use npm test to run the tests" | "Documents testing" | "AI can't parse prose—use explicit command blocks" |
 
-| Guideline from YAML | How It Appeared in Feedback |
-|---------------------|----------------------------|
-| "First sentence states what the project does, not what it is" | Suggested leading with the command and value |
-| "Commands should work when pasted directly" | Rewrote installation as copy-paste blocks |
-| "Show the expected output so readers know it worked" | Added example output showing success |
-| "Document the project structure with a file tree" | Added Project Structure section |
-| "List common development tasks: how to run tests, build, lint" | Expanded Development section with commands |
+## The Human + AI Assistant Angle
 
-## The Human vs. AI Assistant Angle
-
-Notice how several suggestions specifically help AI coding assistants:
+This expertise is specifically designed for READMEs that serve **two audiences**:
 
 | For Humans | For AI Assistants |
 |------------|-------------------|
@@ -212,4 +152,14 @@ Notice how several suggestions specifically help AI coding assistants:
 | Project structure helps navigation | AI can locate the right file for a task |
 | Development commands are listed | AI knows how to run tests after making changes |
 
-This dual focus is what generic README advice misses—AI assistants are now a primary audience for READMEs.
+Generic README advice focuses only on humans. This expertise recognizes that AI coding assistants are now a primary audience.
+
+## How Guidelines Shaped the Feedback
+
+| Guideline from YAML | How It Appeared in Feedback |
+|---------------------|----------------------------|
+| "First sentence states what the project does, not what it is" | Suggested leading with the command and value |
+| "Commands should work when pasted directly" | Rewrote installation as copy-paste blocks |
+| "Show the expected output so readers know it worked" | Added example output showing success |
+| "Document the project structure with a file tree" | Suggested Project Structure section |
+| "List common development tasks: how to run tests, build, lint" | Expanded Development with explicit commands |
