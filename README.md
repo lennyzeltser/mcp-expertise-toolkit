@@ -223,6 +223,8 @@ Based on your `meta.toolPrefix`, the server creates these tools:
 | `include_examples` | Include good/bad examples (default: false) |
 | `category` | Filter to a specific content category |
 
+**See it in action:** The [content/DEMO.md](content/DEMO.md) file shows a realistic session where an AI assistant uses these tools to help a user improve their writing.
+
 ---
 
 ## Adapting for Your Domain
@@ -429,7 +431,8 @@ This design keeps user content local. Consider these characteristics before depl
 ```
 mcp-expertise-toolkit/
 ├── content/
-│   └── expertise.yaml   # Working example (replace with your domain)
+│   ├── expertise.yaml   # Working example (replace with your domain)
+│   └── DEMO.md          # Example session showing the server in action
 ├── src/
 │   ├── index.ts                # MCP server implementation
 │   └── types.ts                # TypeScript types and Zod schemas
