@@ -1,6 +1,6 @@
 # Example Session: Writing Feedback Server in Action
 
-This demo shows how the included `expertise.yaml` works in practice. A user asks their AI assistant to help improve a work email, and the AI uses the MCP server to get expert guidelines.
+This demo shows how the included [`expertise.yaml`](expertise.yaml) works in practice. A user asks their AI assistant to help improve a work email, and the AI uses the MCP server to get expert guidelines.
 
 When you customize the server with your own expertise, your users will have a similar experience tailored to your domain.
 
