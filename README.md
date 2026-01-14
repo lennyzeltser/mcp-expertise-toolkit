@@ -485,6 +485,31 @@ Use MCP when you want expertise accessible from multiple AI tools or shared acro
 
 ---
 
+## Troubleshooting
+
+**Tools not appearing after deployment?**
+
+1. **Check `get_capabilities`** — Call this tool to see loaded domains. If your expertise file failed validation, a **Diagnostics** section will show the file name and error:
+
+   ```
+   ## Diagnostics
+
+   Some expertise files failed validation:
+
+   - **my-domain.yaml:** principles: Invalid input: expected array...
+   ```
+
+2. **Run local validation** — Get detailed error messages:
+   ```bash
+   bun run validate
+   ```
+
+3. **Check R2 upload** — Verify your YAML file was uploaded to the R2 bucket
+
+4. **Check toolPrefix uniqueness** — Each expertise file needs a unique `toolPrefix` value
+
+---
+
 ## Author
 
 **[Lenny Zeltser](https://zeltser.com)**: Builder of security products and programs. Teacher of those who run them.
