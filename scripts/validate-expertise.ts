@@ -1,15 +1,14 @@
 #!/usr/bin/env bun
 /**
- * Validate an expertise YAML file against the schema.
+ * Validate expertise YAML files against the schema.
  *
  * Usage:
- *   bun scripts/validate-expertise.ts [path-to-yaml]
- *
- * If no path is provided, validates content/writing-feedback.yaml
+ *   bun scripts/validate-expertise.ts           # Validates all .yaml files in content/
+ *   bun scripts/validate-expertise.ts [path]    # Validates a specific file
  */
 
-import { readFileSync, existsSync } from "node:fs";
-import { resolve } from "node:path";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
+import { resolve, join } from "node:path";
 import YAML from "yaml";
 import { ExpertiseContentSchema } from "../src/types";
 
@@ -26,11 +25,7 @@ function log(color: keyof typeof COLORS, message: string) {
 	console.log(`${COLORS[color]}${message}${COLORS.reset}`);
 }
 
-function main() {
-	const args = process.argv.slice(2);
-	const inputPath = args[0] || "content/writing-feedback.yaml";
-	const filePath = resolve(process.cwd(), inputPath);
-
+function validateFile(filePath: string): boolean {
 	console.log("");
 	log("blue", `Validating: ${filePath}`);
 	console.log("");
@@ -38,7 +33,7 @@ function main() {
 	// Check file exists
 	if (!existsSync(filePath)) {
 		log("red", `Error: File not found: ${filePath}`);
-		process.exit(1);
+		return false;
 	}
 
 	// Read and parse YAML
@@ -51,7 +46,7 @@ function main() {
 		if (error instanceof Error) {
 			console.error(error.message);
 		}
-		process.exit(1);
+		return false;
 	}
 
 	// Validate with Zod
@@ -68,7 +63,7 @@ function main() {
 
 		console.log("");
 		log("red", `Found ${result.error.issues.length} issue(s)`);
-		process.exit(1);
+		return false;
 	}
 
 	// Validation passed - show summary
@@ -95,15 +90,6 @@ function main() {
 	if (!data.meta.privacyStatement) {
 		warnings.push("No privacyStatement - default will be used");
 	}
-	if (!data.meta.infoUrl) {
-		warnings.push("No infoUrl - consider adding a link for more info");
-	}
-	if (!data.categories || data.categories.length === 0) {
-		warnings.push("No categories defined - consider adding content types");
-	}
-	if (!data.qualityChecks || Object.keys(data.qualityChecks).length === 0) {
-		warnings.push("No qualityChecks defined - consider adding specific checks");
-	}
 
 	// Check for examples
 	let hasCheckpointExamples = false;
@@ -128,9 +114,6 @@ function main() {
 			"No checkpoint examples - consider adding exampleGood/examplePoor",
 		);
 	}
-	if (!hasPrincipleExamples) {
-		warnings.push("No principle examples - consider adding examples array");
-	}
 
 	if (warnings.length > 0) {
 		log("yellow", "Suggestions:");
@@ -149,6 +132,78 @@ function main() {
 	console.log("");
 
 	log("green", "Ready to deploy!");
+	return true;
+}
+
+function main() {
+	const args = process.argv.slice(2);
+
+	// If a specific file is provided, validate just that file
+	if (args[0]) {
+		const filePath = resolve(process.cwd(), args[0]);
+		const success = validateFile(filePath);
+		process.exit(success ? 0 : 1);
+	}
+
+	// Otherwise, validate all .yaml files in content/
+	const contentDir = resolve(process.cwd(), "content");
+	if (!existsSync(contentDir)) {
+		log("red", "Error: content/ directory not found");
+		process.exit(1);
+	}
+
+	const yamlFiles = readdirSync(contentDir).filter((f) => f.endsWith(".yaml"));
+
+	if (yamlFiles.length === 0) {
+		log("yellow", "No .yaml files found in content/");
+		process.exit(0);
+	}
+
+	console.log("");
+	log("blue", `Found ${yamlFiles.length} YAML file(s) in content/`);
+
+	let allPassed = true;
+	const prefixes = new Set<string>();
+	const collisions: string[] = [];
+
+	for (const file of yamlFiles) {
+		const filePath = join(contentDir, file);
+		const success = validateFile(filePath);
+		if (!success) {
+			allPassed = false;
+		} else {
+			// Check for prefix collisions
+			const yamlText = readFileSync(filePath, "utf-8");
+			const data = YAML.parse(yamlText);
+			const prefix = data.meta?.toolPrefix;
+			if (prefix) {
+				if (prefixes.has(prefix)) {
+					collisions.push(`${file} uses toolPrefix "${prefix}" which is already used`);
+				}
+				prefixes.add(prefix);
+			}
+		}
+	}
+
+	// Report prefix collisions
+	if (collisions.length > 0) {
+		console.log("");
+		log("red", "Prefix collisions detected:");
+		for (const c of collisions) {
+			console.log(`  - ${c}`);
+		}
+		allPassed = false;
+	}
+
+	console.log("");
+	console.log("═".repeat(60));
+	if (allPassed) {
+		log("green", `All ${yamlFiles.length} file(s) validated successfully!`);
+	} else {
+		log("red", "Some validations failed. See above for details.");
+	}
+
+	process.exit(allPassed ? 0 : 1);
 }
 
 main();

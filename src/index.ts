@@ -441,37 +441,6 @@ function formatGuidelines(content: ExpertiseContent, topic: string): string {
 }
 
 /**
- * Format capabilities for a single domain.
- */
-function formatDomainCapabilities(content: ExpertiseContent): {
-	domain: string;
-	prefix: string;
-	description: string;
-	tools: { name: string; description: string }[];
-} {
-	const prefix = getToolPrefix(content.meta);
-	return {
-		domain: content.meta.domain,
-		prefix,
-		description: content.meta.description,
-		tools: [
-			{
-				name: `load_${prefix}_context`,
-				description: `Load ${content.meta.domain} context for local analysis`,
-			},
-			{
-				name: `review_${prefix}_content`,
-				description: `Get review criteria for ${content.meta.domain.toLowerCase()} content`,
-			},
-			{
-				name: `get_${prefix}_guidelines`,
-				description: `Get ${content.meta.domain.toLowerCase()} guidelines as markdown`,
-			},
-		],
-	};
-}
-
-/**
  * Format all capabilities as readable markdown.
  */
 function formatAllCapabilities(
