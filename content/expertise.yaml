@@ -1,6 +1,19 @@
-# Writing Feedback Expertise
-# Example expertise file for the MCP Expertise Toolkit
-# Replace this with your own domain expertise
+# =============================================================================
+# EXAMPLE EXPERTISE FILE
+# =============================================================================
+#
+# This is a working example demonstrating the expertise YAML format.
+# The example domain is "Writing Feedback" - replace it with your own expertise.
+#
+# To customize:
+# 1. Change meta.domain, meta.author, meta.toolPrefix to match your domain
+# 2. Replace principles with your domain's core guidelines
+# 3. Replace checkpoints with what you look for in content
+# 4. Replace qualityChecks with issues you commonly flag
+# 5. Adjust reviewGuidance for your feedback style
+#
+# See docs/schema-reference.md for the complete field documentation.
+# =============================================================================
 
 version: "1.0.0"
 

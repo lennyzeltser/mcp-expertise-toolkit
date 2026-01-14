@@ -200,7 +200,7 @@ requirements:
 
 ## Complete Example
 
-See `content/writing-feedback.yaml` for a complete working example.
+See `content/expertise.yaml` for a complete working example.
 
 ## Validation
 

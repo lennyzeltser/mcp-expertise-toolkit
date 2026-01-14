@@ -98,7 +98,7 @@ bun install  # or: npm install
 
 ### 2. Create Your Expertise File
 
-Edit `content/writing-feedback.yaml` or create a new file. The included example covers writing feedback — replace it with your domain. One way to do that is to direct your AI assistant to create this file based on knowledge you share with it.
+Edit `content/expertise.yaml`. This file contains a complete working example (writing feedback) that you should replace with your own domain expertise. You can also direct your AI assistant to create the content based on knowledge you share with it.
 
 ### 3. Validate
 
@@ -121,7 +121,7 @@ npx wrangler r2 bucket create mcp-expertise-data
 
 # Upload your expertise file
 npx wrangler r2 object put mcp-expertise-data/expertise.yaml \
-  --file content/writing-feedback.yaml \
+  --file content/expertise.yaml \
   --content-type "text/yaml"
 
 # Deploy the Worker
@@ -429,20 +429,19 @@ This design keeps user content local. Consider these characteristics before depl
 ```
 mcp-expertise-toolkit/
 ├── content/
-│   └── writing-feedback.yaml   # Example expertise (replace with yours)
+│   └── expertise.yaml   # Working example (replace with your domain)
 ├── src/
 │   ├── index.ts                # MCP server implementation
 │   └── types.ts                # TypeScript types and Zod schemas
 ├── scripts/
 │   └── validate-expertise.ts   # Validates your YAML
 ├── docs/
-│   ├── schema-reference.md     # Complete YAML format
-│   └── deployment-guide.md     # Cloudflare setup details
+│   └── schema-reference.md     # Complete YAML format
 ├── wrangler.jsonc              # Cloudflare Worker config
 └── package.json
 ```
 
-**To customize:** Edit `content/writing-feedback.yaml` (or create your own YAML file). The server code in `src/` rarely needs changes.
+**To customize:** Replace the contents of `content/expertise.yaml` with your own domain expertise. The included example demonstrates writing feedback. The server code in `src/` rarely needs changes.
 
 ### Commands
 
