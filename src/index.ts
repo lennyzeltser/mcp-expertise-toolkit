@@ -29,6 +29,9 @@ const expertiseCache = new Map<
 	{ content: ExpertiseContent; timestamp: number }
 >();
 
+// Track validation errors for diagnostics (keyed by filename)
+const validationErrors = new Map<string, string>();
+
 /**
  * List all YAML files in the R2 bucket.
  */
@@ -67,12 +70,21 @@ async function loadExpertiseFile(
 		// Validate with Zod schema
 		const result = ExpertiseContentSchema.safeParse(data);
 		if (!result.success) {
+			// Track validation error for diagnostics
+			const issues = result.error.issues
+				.map((i) => `${i.path.join(".")}: ${i.message}`)
+				.slice(0, 3) // Limit to first 3 issues
+				.join("; ");
+			validationErrors.set(filename, issues);
 			console.error(
 				`Expertise content validation failed for ${filename}:`,
 				result.error.issues,
 			);
 			return null;
 		}
+
+		// Clear any previous validation error on success
+		validationErrors.delete(filename);
 
 		const content = result.data as ExpertiseContent;
 		expertiseCache.set(filename, { content, timestamp: now });
@@ -442,9 +454,11 @@ function formatGuidelines(content: ExpertiseContent, topic: string): string {
 
 /**
  * Format all capabilities as readable markdown.
+ * Includes diagnostics section if there are validation errors.
  */
 function formatAllCapabilities(
 	allContent: { filename: string; content: ExpertiseContent }[],
+	errors?: Map<string, string>,
 ): string {
 	const lines = [
 		"# MCP Expertise Server Capabilities",
@@ -470,6 +484,20 @@ function formatAllCapabilities(
 	lines.push(DEFAULT_PRIVACY_STATEMENT);
 	lines.push("");
 	lines.push("Your content is analyzed locally by your AI assistant. It is never sent to this server.");
+
+	// Add diagnostics section if there are validation errors
+	if (errors && errors.size > 0) {
+		lines.push("");
+		lines.push("## Diagnostics");
+		lines.push("");
+		lines.push("Some expertise files failed validation:");
+		lines.push("");
+		for (const [filename, error] of errors) {
+			lines.push(`- **${filename}:** ${error}`);
+		}
+		lines.push("");
+		lines.push("*Run `bun run validate` locally to see full error details.*");
+	}
 
 	return lines.join("\n");
 }
@@ -548,7 +576,10 @@ export class ExpertiseMCP extends McpAgent {
 						};
 					}
 
-					const capabilities = formatAllCapabilities(currentContent);
+					const capabilities = formatAllCapabilities(
+						currentContent,
+						validationErrors,
+					);
 					return {
 						content: [{ type: "text", text: capabilities }],
 					};
