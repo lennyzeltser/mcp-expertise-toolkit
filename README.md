@@ -250,6 +250,8 @@ To create expertise for code review, recipes, or another domain:
 3. **List quality checks** — What specific issues do you commonly flag?
 4. **Set the tone** — How should feedback be delivered?
 
+Once you've thought through these questions, start with `content/_starter-template.yaml` and fill in your answers.
+
 **Example: Code Review**
 
 ```yaml
