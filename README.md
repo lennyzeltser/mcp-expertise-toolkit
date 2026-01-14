@@ -98,9 +98,13 @@ bun install  # or: npm install
 
 ### 2. Create Your Expertise File
 
-Create a `.yaml` file in the `content/` directory. See the included examples:
-- `readme-review.yaml` — README review for humans and AI assistants
-- `bbq-scoring.yaml` — BBQ competition judging (KCBS standards)
+Start with the starter template in `content/`:
+
+```bash
+cp content/_starter-template.yaml content/my-domain.yaml
+```
+
+Edit the file and replace all `[REPLACE: ...]` placeholders with your domain expertise. See `content/readme-review.yaml` and `content/bbq-scoring.yaml` for complete examples.
 
 Each file has a `toolPrefix` that determines its tool names. You can deploy one file or multiple files to the same server.
 

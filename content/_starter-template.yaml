@@ -1,0 +1,91 @@
+# =============================================================================
+# STARTER TEMPLATE
+# =============================================================================
+#
+# Copy this file and rename it for your domain:
+#   cp _starter-template.yaml my-domain.yaml
+#
+# Then replace all [REPLACE: ...] placeholders with your content.
+# Run `bun run validate` to check your file before deploying.
+#
+# Full schema documentation: docs/schema-reference.md
+
+version: "1.0.0"
+
+# -----------------------------------------------------------------------------
+# META: Basic information about your expertise domain
+# -----------------------------------------------------------------------------
+meta:
+  domain: "[REPLACE: Your Domain Name]"
+  author: "[REPLACE: Your Name]"
+  description: "[REPLACE: Brief description of what this expertise helps with]"
+  toolPrefix: "replace_me"  # REPLACE: lowercase, no spaces, e.g., "codereview"
+  # infoUrl: "https://example.com/more-info"  # Optional: link to more information
+
+# -----------------------------------------------------------------------------
+# PRINCIPLES: High-level guidelines (at least 1 required)
+# -----------------------------------------------------------------------------
+principles:
+  - name: "[REPLACE: First Principle Name]"
+    description: "[REPLACE: Why this principle matters]"
+    guidelines:
+      - "[REPLACE: Specific actionable guidance]"
+      - "[REPLACE: Another specific guideline]"
+    # Optional: Add examples to illustrate the principle
+    # examples:
+    #   - bad: "Example of what NOT to do"
+    #     good: "Example of what TO do"
+    #     explanation: "Why the good example is better"
+
+# -----------------------------------------------------------------------------
+# CHECKPOINTS: Things to verify in content (at least 1 required)
+# -----------------------------------------------------------------------------
+checkpoints:
+  - id: "[REPLACE: checkpoint_id]"  # lowercase with underscores
+    name: "[REPLACE: Checkpoint Name]"
+    purpose: "[REPLACE: What this checkpoint verifies]"
+    # Use semantic descriptions, not keywords
+    whatIndicatesPresence:
+      - "[REPLACE: Describe what to look for conceptually]"
+      - "[REPLACE: Another semantic indicator]"
+    commonProblems:
+      - "[REPLACE: Typical issue people have]"
+    # Optional: Add examples
+    # exampleGood: "Example of content that passes this checkpoint"
+    # examplePoor: "Example of content that fails this checkpoint"
+
+# -----------------------------------------------------------------------------
+# REVIEW GUIDANCE: How to frame feedback (required)
+# -----------------------------------------------------------------------------
+reviewGuidance:
+  feedbackStructure:
+    - "[REPLACE: How to structure feedback, e.g., 'Start with what works well']"
+    - "[REPLACE: Another structural guideline]"
+  tone:
+    - "[REPLACE: Tone guidance, e.g., 'Be constructive and specific']"
+    - "[REPLACE: Another tone guideline]"
+
+# -----------------------------------------------------------------------------
+# OPTIONAL SECTIONS (uncomment and customize as needed)
+# -----------------------------------------------------------------------------
+
+# Categories help classify different types of content in your domain
+# categories:
+#   - name: "[Category Name]"
+#     description: "[When this category applies]"
+#     specificGuidance:
+#       - "[Guidance specific to this category]"
+
+# Quality checks define specific issues to look for
+# qualityChecks:
+#   missingContext:
+#     - bad: "[Example of missing context]"
+#       good: "[Example with proper context]"
+#       explanation: "[Why context matters]"
+
+# Requirements capture external constraints (compliance, standards, etc.)
+# requirements:
+#   - name: "[Requirement Name]"
+#     description: "[What this requirement covers]"
+#     guidance:
+#       - "[How to meet this requirement]"

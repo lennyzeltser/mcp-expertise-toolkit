@@ -1,28 +1,29 @@
-# Expertise Content Directory
+# Sample Expertise Files
 
-This directory contains expertise YAML files and demo sessions. When you deploy the MCP server, files from this directory are uploaded to R2 storage and made available through MCP tools.
+This directory contains **sample YAML files for demonstration purposes**. These examples show how to structure expertise content but are not intended for production use. You should create your own expertise files based on your domain knowledge.
 
 ## Directory Contents
 
 | File Type | Purpose |
 |-----------|---------|
-| `*.yaml` | Expertise definitions - each file creates 3 MCP tools |
+| `_starter-template.yaml` | Minimal template to start your own expertise file |
+| `*.yaml` | Sample expertise files demonstrating the schema |
 | `DEMO-*.md` | Demo sessions showing how the tools work in practice |
 
-## Included Examples
+## Sample Files
 
-| File | Domain | Tools Created |
-|------|--------|---------------|
-| `readme-review.yaml` | README file quality | `load_readme_context`, `review_readme_content`, `get_readme_guidelines` |
-| `bbq-scoring.yaml` | BBQ competition judging | `load_bbq_context`, `review_bbq_content`, `get_bbq_guidelines` |
+| File | Domain | Purpose |
+|------|--------|---------|
+| `readme-review.yaml` | README file quality | Demonstrates principles, checkpoints, and quality checks |
+| `bbq-scoring.yaml` | BBQ competition judging | Shows a very different domain to illustrate flexibility |
 
-These examples demonstrate very different domains to show the toolkit's flexibility.
+These samples use placeholder author names (`[REPLACE: Your Name]`) to make clear they're templates, not production content.
 
 ## Creating Your Own Expertise File
 
-1. **Copy an example** and rename it for your domain:
+1. **Start with the template:**
    ```bash
-   cp readme-review.yaml my-domain.yaml
+   cp _starter-template.yaml my-domain.yaml
    ```
 
 2. **Update the meta section** with your domain info:
@@ -98,33 +99,15 @@ whatIndicatesPresence:
 
 ## Demo Sessions
 
-Demo files (`DEMO-*.md`) show realistic conversations where AI uses your expertise tools. They help:
+Demo files (`DEMO-*.md`) show realistic conversations where AI uses the sample expertise tools. They help you understand:
 
-- Document expected tool usage patterns
-- Show the value of domain expertise vs generic AI
-- Provide examples for users of your MCP server
-
-Follow the annotation style in existing demos:
-
-```markdown
-## Behind the Scenes
-
-The AI recognizes this task and calls:
-
-**Tool call:** `review_mydomain_content`
-```json
-{
-  "checkpoints": ["relevant", "checkpoints"],
-  "focus": ["qualityChecks"]
-}
-```
-
-**Server returns:** [Description of what the server provides]
-```
+- Expected tool usage patterns
+- The value of domain expertise vs generic AI
+- How to document your own MCP server
 
 ## Uploading to R2
 
-After creating or modifying expertise files:
+After creating your expertise file:
 
 1. **Validate first:**
    ```bash
