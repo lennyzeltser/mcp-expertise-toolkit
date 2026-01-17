@@ -35,6 +35,8 @@ You might use this to:
 - Guide developers with your code review criteria
 - Share your domain knowledge with anyone who has an MCP-compatible AI tool
 
+To see this approach in action, take a look at how [it helps people writing better incident response reports](https://zeltser.com/good-ir-reports-with-ai).
+
 ## How It Works
 
 ```
