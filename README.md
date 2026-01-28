@@ -520,6 +520,41 @@ Use MCP when you want expertise accessible from multiple AI tools or shared acro
 
 ---
 
+## AI Agent Quick Reference
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `src/index.ts` | MCP server: tool definitions, R2 loading, YAML parsing, context builders |
+| `src/types.ts` | TypeScript interfaces and Zod validation schemas for expertise YAML |
+| `content/_starter-template.yaml` | Template for creating new expertise domains |
+| `scripts/validate-expertise.ts` | Validates YAML files against the schema |
+| `wrangler.jsonc` | Cloudflare Worker and R2 bucket configuration |
+
+### Architecture
+
+```
+Expertise YAML → R2 Bucket → Worker (parses YAML, creates MCP tools) → AI Client
+                                                                          ↓
+                                                              Local analysis of user content
+```
+
+- Each `.yaml` file in R2 becomes a set of MCP tools (prefixed by `toolPrefix`)
+- The Worker auto-discovers all YAML files in the bucket
+- User content never leaves the client; only expertise/guidelines flow from the server
+
+### Common Dev Tasks
+
+```bash
+bun run dev          # Local dev server (http://localhost:8787)
+bun run validate     # Validate expertise YAML against schema
+bun run type-check   # TypeScript checking
+bun run deploy       # Deploy to Cloudflare
+```
+
+---
+
 ## Author
 
 **[Lenny Zeltser](https://zeltser.com)**: Builder of security products and programs. Teacher of those who run them.
