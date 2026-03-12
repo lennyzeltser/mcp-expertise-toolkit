@@ -21,12 +21,12 @@ interface Env extends Cloudflare.Env {
 }
 
 // Configuration
-const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+const CACHE_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours
 
 // Cache for expertise content (keyed by filename)
 const expertiseCache = new Map<
 	string,
-	{ content: ExpertiseContent; timestamp: number }
+	{ content: ExpertiseContent; timestamp: number; etag: string }
 >();
 
 // Track validation errors for diagnostics (keyed by filename)
@@ -58,6 +58,23 @@ async function loadExpertiseFile(
 	}
 
 	try {
+		// If we have cached content but TTL expired, check etag before full fetch
+		if (cached) {
+			const head = await bucket.head(filename);
+			if (!head) {
+				// File was deleted from R2
+				expertiseCache.delete(filename);
+				return null;
+			}
+			if (head.etag === cached.etag) {
+				// Content unchanged — refresh timestamp without re-downloading
+				cached.timestamp = now;
+				console.log(`[cache] ${filename}: etag match, using cached content`);
+				return cached.content;
+			}
+			console.log(`[cache] ${filename}: content changed, reloading`);
+		}
+
 		const object = await bucket.get(filename);
 		if (!object) {
 			console.log(`Expertise file not found in R2 bucket: ${filename}`);
@@ -87,7 +104,7 @@ async function loadExpertiseFile(
 		validationErrors.delete(filename);
 
 		const content = result.data as ExpertiseContent;
-		expertiseCache.set(filename, { content, timestamp: now });
+		expertiseCache.set(filename, { content, timestamp: now, etag: object.etag });
 		return content;
 	} catch (error) {
 		console.error(`Error loading expertise content from ${filename}:`, error);
@@ -103,16 +120,17 @@ async function getAllExpertiseContent(
 	bucket: R2Bucket,
 ): Promise<{ filename: string; content: ExpertiseContent }[]> {
 	const files = await listExpertiseFiles(bucket);
-	const results: { filename: string; content: ExpertiseContent }[] = [];
 
-	for (const filename of files) {
-		const content = await loadExpertiseFile(bucket, filename);
-		if (content) {
-			results.push({ filename, content });
-		}
-	}
+	const loaded = await Promise.all(
+		files.map(async (filename) => {
+			const content = await loadExpertiseFile(bucket, filename);
+			return content ? { filename, content } : null;
+		}),
+	);
 
-	return results;
+	return loaded.filter(
+		(r): r is { filename: string; content: ExpertiseContent } => r !== null,
+	);
 }
 
 // ============================================================================
@@ -516,7 +534,11 @@ export class ExpertiseMCP extends McpAgent {
 		const bucket = (this.env as Env).EXPERTISE_BUCKET;
 
 		// Load all expertise files
+		const initStart = Date.now();
 		const allContent = await getAllExpertiseContent(bucket);
+		console.log(
+			`[init] loaded ${allContent.length} domain${allContent.length === 1 ? "" : "s"} in ${Date.now() - initStart}ms`,
+		);
 
 		if (allContent.length === 0) {
 			// Register a single tool that explains the setup is incomplete
@@ -823,10 +845,16 @@ export default {
 
 		// Health check / info endpoint
 		if (url.pathname === "/" || url.pathname === "/health") {
-			try {
-				const allContent = await getAllExpertiseContent(env.EXPERTISE_BUCKET);
+			const cacheHeaders = {
+				"Content-Type": "application/json",
+				"Cache-Control": "public, max-age=60, s-maxage=300",
+			};
 
-				if (allContent.length === 0) {
+			try {
+				// Lightweight: list files from R2 without downloading content
+				const files = await listExpertiseFiles(env.EXPERTISE_BUCKET);
+
+				if (files.length === 0) {
 					return new Response(
 						JSON.stringify({
 							name: "MCP Expertise Server",
@@ -836,29 +864,36 @@ export default {
 						}),
 						{
 							status: 503,
-							headers: { "Content-Type": "application/json" },
+							headers: cacheHeaders,
 						},
 					);
 				}
 
-				// Build domain info
-				const domains = allContent.map(({ filename, content }) => {
-					const prefix = getToolPrefix(content.meta);
-					return {
-						domain: content.meta.domain,
-						author: content.meta.author,
-						description: content.meta.description,
-						file: filename,
-						tools: [
-							`load_${prefix}_context`,
-							`review_${prefix}_content`,
-							`get_${prefix}_guidelines`,
-						],
-					};
+				// Build domain info from cache (no R2 downloads)
+				const domains = files.map((filename) => {
+					const cached = expertiseCache.get(filename);
+					if (cached) {
+						const prefix = getToolPrefix(cached.content.meta);
+						return {
+							domain: cached.content.meta.domain,
+							author: cached.content.meta.author,
+							description: cached.content.meta.description,
+							file: filename,
+							tools: [
+								`load_${prefix}_context`,
+								`review_${prefix}_content`,
+								`get_${prefix}_guidelines`,
+							],
+						};
+					}
+					// File exists but not yet cached (cold start)
+					return { file: filename };
 				});
 
-				// Collect all tool names
-				const allTools = domains.flatMap((d) => d.tools);
+				// Collect tool names from cached domains
+				const allTools = domains.flatMap((d) =>
+					"tools" in d ? d.tools : [],
+				);
 				allTools.push("get_capabilities");
 
 				return new Response(
@@ -866,7 +901,7 @@ export default {
 						name: "MCP Expertise Server",
 						version: "1.0.0",
 						status: "ready",
-						domainsLoaded: allContent.length,
+						domainsLoaded: files.length,
 						domains,
 						endpoints: {
 							sse: "/sse",
@@ -875,7 +910,7 @@ export default {
 						tools: allTools,
 					}),
 					{
-						headers: { "Content-Type": "application/json" },
+						headers: cacheHeaders,
 					},
 				);
 			} catch (error) {
@@ -889,7 +924,7 @@ export default {
 					}),
 					{
 						status: 503,
-						headers: { "Content-Type": "application/json" },
+						headers: cacheHeaders,
 					},
 				);
 			}
