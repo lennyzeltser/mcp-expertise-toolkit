@@ -1,0 +1,27 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "lennyzeltser"
+    commit-message:
+      prefix: "deps"
+    groups:
+      cloudflare:
+        patterns:
+          - "@cloudflare/*"
+          - "wrangler"
+      dev-tools:
+        patterns:
+          - "@biomejs/*"
+          - "typescript"
+          - "@types/*"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "ci"
