@@ -253,6 +253,30 @@ principles:
         attribution: "Generic Author, Example Style Guide"
 ```
 
+### Scoring scales on items (`scale`)
+
+When an item represents one dimension of a scoring rubric, attach its ordinal levels with the optional `scale` array. Each level carries a numeric `score`, a short `label`, the `text` describing what earns that score, and optional per-level `attribution` if a single level came from a different source than the parent item. `scale` is opt-in; items without it render as before.
+
+```yaml
+principles:
+  - name: "Defensibility"
+    guidelines:
+      - text: "Value Delivery: does the product sell software, or sell judgment with software as delivery"
+        attribution: "Rubric Author, example.com"
+        scale:
+          - score: 1
+            label: "exposed"
+            text: "Software is the product. Customers pay for features."
+          - score: 2
+            label: "mixed"
+            text: "Software enables a service. Code and expertise blend."
+          - score: 3
+            label: "defensible"
+            text: "Judgment is the product. Software is delivery."
+```
+
+`renderGuideline()` emits each level as a nested bullet beneath the item, so scoring rubrics render cleanly without any additional formatting logic on the consumer.
+
 ### Complete example
 
 A checkpoint that paraphrases an external style guide, attributed at the section level:

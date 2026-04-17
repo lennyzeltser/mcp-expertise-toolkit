@@ -34,12 +34,28 @@ export interface Attribution {
 }
 
 /**
+ * A level on an ordinal scoring scale attached to an item (e.g., a rubric
+ * dimension). Each level carries its numeric score, a short label, and the
+ * text describing what earns that score. Optional per-level `attribution`
+ * lets a level cite a different source than its parent item.
+ */
+export interface Scale {
+	score: number;
+	label: string;
+	text: string;
+	attribution?: string;
+}
+
+/**
  * An item inside a string-array field (e.g., `guidelines`) that carries its
- * own attribution. Plain strings remain valid; this shape is opt-in.
+ * own attribution. Plain strings remain valid; this shape is opt-in. An
+ * optional `scale` array lets the item function as one dimension of a
+ * scoring rubric, carrying its ordinal levels with it.
  */
 export interface AttributedItem {
 	text: string;
 	attribution?: string;
+	scale?: Scale[];
 }
 
 /**
@@ -311,9 +327,17 @@ export const AttributionFields = {
 	license: z.string().min(1).optional(),
 } as const;
 
+export const ScaleSchema = z.object({
+	score: z.number().int(),
+	label: z.string().min(1),
+	text: z.string().min(1),
+	attribution: z.string().min(1).optional(),
+});
+
 export const AttributedItemSchema = z.object({
 	text: z.string().min(1),
 	attribution: z.string().min(1).optional(),
+	scale: z.array(ScaleSchema).min(1).optional(),
 });
 
 export const GuidelineSchema = z.union([
@@ -435,10 +459,22 @@ export function getToolPrefix(meta: ExpertiseMeta): string {
 /**
  * Render a Guideline item as a string. Plain strings pass through; attributed
  * items become "text — *attribution*" so the source stays visible in output.
+ * When a `scale` array is present, each level is appended as a nested bullet
+ * so scoring rubrics render inline.
  */
 export function renderGuideline(item: Guideline): string {
 	if (typeof item === "string") return item;
-	return item.attribution ? `${item.text} — *${item.attribution}*` : item.text;
+	const head = item.attribution
+		? `${item.text} — *${item.attribution}*`
+		: item.text;
+	if (!item.scale || item.scale.length === 0) return head;
+	const levels = item.scale
+		.map((s) => {
+			const suffix = s.attribution ? ` — *${s.attribution}*` : "";
+			return `  - ${s.score} (${s.label}): ${s.text}${suffix}`;
+		})
+		.join("\n");
+	return `${head}\n${levels}`;
 }
 
 /**

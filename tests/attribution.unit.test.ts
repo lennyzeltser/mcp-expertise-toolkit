@@ -10,6 +10,7 @@ import {
 	PrincipleSchema,
 	QualityCheckCategorySchema,
 	RequirementSchema,
+	ScaleSchema,
 	renderGuideline,
 } from "../src/types";
 
@@ -313,5 +314,134 @@ describe("renderGuideline", () => {
 
 	test("renders an AttributedItem without attribution as plain text", () => {
 		expect(renderGuideline({ text: "hello" })).toBe("hello");
+	});
+
+	test("renders a scale block beneath the item", () => {
+		const output = renderGuideline({
+			text: "Dimension",
+			attribution: "Rubric Author",
+			scale: [
+				{ score: 1, label: "low", text: "Bad." },
+				{ score: 2, label: "mid", text: "Medium." },
+				{ score: 3, label: "high", text: "Good." },
+			],
+		});
+		expect(output).toBe(
+			"Dimension — *Rubric Author*\n" +
+				"  - 1 (low): Bad.\n" +
+				"  - 2 (mid): Medium.\n" +
+				"  - 3 (high): Good.",
+		);
+	});
+
+	test("renders a scale block without attribution on the head item", () => {
+		const output = renderGuideline({
+			text: "Dimension",
+			scale: [{ score: 1, label: "low", text: "Bad." }],
+		});
+		expect(output).toBe("Dimension\n  - 1 (low): Bad.");
+	});
+
+	test("renders per-level attribution suffix when set", () => {
+		const output = renderGuideline({
+			text: "Dimension",
+			scale: [
+				{
+					score: 1,
+					label: "low",
+					text: "Bad.",
+					attribution: "Level Author",
+				},
+			],
+		});
+		expect(output).toBe("Dimension\n  - 1 (low): Bad. — *Level Author*");
+	});
+});
+
+// ---------------------------------------------------------------------------
+// ScaleSchema and AttributedItem.scale
+// ---------------------------------------------------------------------------
+
+describe("ScaleSchema", () => {
+	test("accepts a valid level", () => {
+		expect(
+			ScaleSchema.safeParse({ score: 1, label: "low", text: "Bad." }).success,
+		).toBe(true);
+	});
+
+	test("accepts a level with per-level attribution", () => {
+		expect(
+			ScaleSchema.safeParse({
+				score: 2,
+				label: "mid",
+				text: "Medium.",
+				attribution: "Level Author",
+			}).success,
+		).toBe(true);
+	});
+
+	test("rejects a level with a non-integer score", () => {
+		expect(
+			ScaleSchema.safeParse({ score: 1.5, label: "low", text: "Bad." }).success,
+		).toBe(false);
+	});
+
+	test("rejects a level with an empty label", () => {
+		expect(
+			ScaleSchema.safeParse({ score: 1, label: "", text: "Bad." }).success,
+		).toBe(false);
+	});
+
+	test("rejects a level with empty text", () => {
+		expect(
+			ScaleSchema.safeParse({ score: 1, label: "low", text: "" }).success,
+		).toBe(false);
+	});
+
+	test("rejects a level missing required fields", () => {
+		expect(ScaleSchema.safeParse({ score: 1, label: "low" }).success).toBe(
+			false,
+		);
+		expect(ScaleSchema.safeParse({ label: "low", text: "Bad." }).success).toBe(
+			false,
+		);
+	});
+});
+
+describe("AttributedItemSchema — scale", () => {
+	test("accepts an item with a valid scale array", () => {
+		const result = AttributedItemSchema.safeParse({
+			text: "Dimension",
+			attribution: "Author",
+			scale: [
+				{ score: 1, label: "low", text: "Bad." },
+				{ score: 2, label: "mid", text: "Medium." },
+				{ score: 3, label: "high", text: "Good." },
+			],
+		});
+		expect(result.success).toBe(true);
+	});
+
+	test("accepts an item without a scale (backward compat)", () => {
+		expect(
+			AttributedItemSchema.safeParse({
+				text: "Item",
+				attribution: "Author",
+			}).success,
+		).toBe(true);
+	});
+
+	test("rejects an item with an empty scale array", () => {
+		expect(
+			AttributedItemSchema.safeParse({ text: "Item", scale: [] }).success,
+		).toBe(false);
+	});
+
+	test("rejects an item with an invalid level inside scale", () => {
+		const result = AttributedItemSchema.safeParse({
+			text: "Item",
+			scale: [{ score: 1, label: "low" }],
+		});
+		expect(result.success).toBe(false);
 	});
 });
