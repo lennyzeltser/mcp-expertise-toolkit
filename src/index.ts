@@ -12,6 +12,7 @@ import type {
 import {
 	ExpertiseContentSchema,
 	getToolPrefix,
+	renderGuideline,
 	DEFAULT_PRIVACY_STATEMENT,
 } from "./types";
 
@@ -328,7 +329,9 @@ function formatGuidelines(content: ExpertiseContent, topic: string): string {
 			lines.push("");
 			lines.push("## Core Principles");
 			for (const p of content.principles) {
-				lines.push(`- **${p.name}**: ${p.description || p.guidelines[0]}`);
+				lines.push(
+					`- **${p.name}**: ${p.description || renderGuideline(p.guidelines[0])}`,
+				);
 			}
 			break;
 		}
@@ -343,7 +346,7 @@ function formatGuidelines(content: ExpertiseContent, topic: string): string {
 				}
 				lines.push("");
 				for (const g of principle.guidelines) {
-					lines.push(`- ${g}`);
+					lines.push(`- ${renderGuideline(g)}`);
 				}
 				if (principle.examples && principle.examples.length > 0) {
 					lines.push("");
@@ -447,7 +450,7 @@ function formatGuidelines(content: ExpertiseContent, topic: string): string {
 			for (const p of content.principles) {
 				lines.push(`### ${p.name}`);
 				for (const g of p.guidelines) {
-					lines.push(`- ${g}`);
+					lines.push(`- ${renderGuideline(g)}`);
 				}
 				lines.push("");
 			}

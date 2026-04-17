@@ -1,0 +1,28 @@
+version: "1.0.0"
+
+meta:
+  domain: "Example Domain"
+  author: "Generic Author"
+  description: "Fixture: external-paraphrased with no originalAuthor or sourceUrl. Should validate but emit a warning."
+  toolPrefix: "example"
+
+principles:
+  - name: "Example Principle"
+    guidelines:
+      - "A plain string guideline."
+    attributionType: "external-paraphrased"
+
+checkpoints:
+  - id: "example_checkpoint"
+    name: "Example Checkpoint"
+    purpose: "Verify something matters."
+    whatIndicatesPresence:
+      - "Clear concept that the reader can recognize."
+    commonProblems:
+      - "Vague framing."
+
+reviewGuidance:
+  feedbackStructure:
+    - "Lead with strengths."
+  tone:
+    - "Constructive, specific."

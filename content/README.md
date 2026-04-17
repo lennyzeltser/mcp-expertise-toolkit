@@ -97,6 +97,26 @@ whatIndicatesPresence:
   - "Context that helps newcomers orient themselves"
 ```
 
+## External Attribution
+
+When a section paraphrases or references a framework originally authored by someone else, use the optional attribution fields to credit the original author. See [the attribution reference](../docs/schema-reference.md#attribution-optional) for the full pattern and the five `attributionType` enum values.
+
+Minimal example:
+
+```yaml
+checkpoints:
+  - id: "plain_language"
+    name: "Plain Language"
+    purpose: "Prefer simple words over jargon."
+    whatIndicatesPresence:
+      - "Short sentences that carry one idea each"
+    commonProblems:
+      - "Nominalizations replacing active verbs"
+    originalAuthor: "Generic Author"
+    sourceUrl: "https://example.com/style-guide"
+    attributionType: "external-paraphrased"
+```
+
 ## Demo Sessions
 
 Demo files (`DEMO-*.md`) show realistic conversations where AI uses the sample expertise tools. They help you understand:

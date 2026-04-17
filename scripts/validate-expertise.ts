@@ -82,6 +82,27 @@ function validateFile(filePath: string): boolean {
 		`  Quality Checks: ${data.qualityChecks ? Object.keys(data.qualityChecks).length : 0}`,
 	);
 	console.log(`  Requirements: ${data.requirements?.length || 0}`);
+
+	// Count externally-attributed items across all section types
+	const attributedSections: Array<{
+		attributionType?: string;
+		originalAuthor?: string;
+		sourceUrl?: string;
+		name?: string;
+		id?: string;
+	}> = [
+		...data.principles,
+		...data.checkpoints,
+		...(data.categories || []),
+		...(data.requirements || []),
+		...(data.qualityChecks
+			? Object.entries(data.qualityChecks).map(([id, qc]) => ({ id, ...qc }))
+			: []),
+	];
+	const externalCount = attributedSections.filter(
+		(x) => x.attributionType && x.attributionType.startsWith("external-"),
+	).length;
+	console.log(`  Externally-attributed items: ${externalCount}`);
 	console.log("");
 
 	// Warnings for optional fields
@@ -113,6 +134,40 @@ function validateFile(filePath: string): boolean {
 		warnings.push(
 			"No checkpoint examples - consider adding exampleGood/examplePoor",
 		);
+	}
+
+	// Warn when external-* attribution is claimed but no source is recorded
+	const collections: Array<[string, Array<{
+		attributionType?: string;
+		originalAuthor?: string;
+		sourceUrl?: string;
+		name?: string;
+		id?: string;
+	}>]> = [
+		["principles", data.principles],
+		["checkpoints", data.checkpoints],
+		["categories", data.categories || []],
+		["requirements", data.requirements || []],
+	];
+	if (data.qualityChecks) {
+		collections.push([
+			"qualityChecks",
+			Object.entries(data.qualityChecks).map(([id, qc]) => ({ id, ...qc })),
+		]);
+	}
+	for (const [collection, items] of collections) {
+		for (const item of items) {
+			if (
+				item.attributionType?.startsWith("external-") &&
+				!item.originalAuthor &&
+				!item.sourceUrl
+			) {
+				const label = item.name || item.id || "unnamed";
+				warnings.push(
+					`${collection} item "${label}" uses external attribution but has no originalAuthor or sourceUrl`,
+				);
+			}
+		}
 	}
 
 	if (warnings.length > 0) {

@@ -197,7 +197,7 @@ reviewGuidance:                   # How to deliver feedback
     - "Collaborative, not critical"
 ```
 
-See [docs/schema-reference.md](docs/schema-reference.md) for the complete format.
+Any section can also carry optional attribution fields (`originalAuthor`, `sourceUrl`, `attributionType`, `license`) when it paraphrases or references someone else's framework. See [docs/schema-reference.md](docs/schema-reference.md) for the complete format, including the [attribution pattern](docs/schema-reference.md#attribution-optional).
 
 ### Semantic Guidance
 

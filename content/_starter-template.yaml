@@ -21,6 +21,10 @@ meta:
   description: "[REPLACE: Brief description of what this expertise helps with]"
   toolPrefix: "replace_me"  # REPLACE: lowercase, no spaces, e.g., "codereview"
   # infoUrl: "https://example.com/more-info"  # Optional: link to more information
+  #
+  # Optional: if your file includes frameworks originally authored by others,
+  # describe your attribution policy here. See docs/schema-reference.md#attribution.
+  # attributionPolicy: "External frameworks, when included, are attributed to their original authors via per-section originalAuthor, sourceUrl, attributionType, and license fields."
 
 # -----------------------------------------------------------------------------
 # PRINCIPLES: High-level guidelines (at least 1 required)
@@ -31,11 +35,21 @@ principles:
     guidelines:
       - "[REPLACE: Specific actionable guidance]"
       - "[REPLACE: Another specific guideline]"
+      # Optional alternative shape for a single guideline sourced from elsewhere:
+      # - text: "A guideline sourced from an external work"
+      #   attribution: "Generic Author, Example Book (2024)"
     # Optional: Add examples to illustrate the principle
     # examples:
     #   - bad: "Example of what NOT to do"
     #     good: "Example of what TO do"
     #     explanation: "Why the good example is better"
+    #
+    # Optional: credit an external author if this principle paraphrases their framework.
+    # See docs/schema-reference.md#attribution for the full pattern.
+    # originalAuthor: "Generic Author"
+    # sourceUrl: "https://example.com/original-framework"
+    # attributionType: "external-paraphrased"  # self-authored | self-derived | external-reference | external-paraphrased | external-licensed
+    # license: "Framework by Generic Author; summary by [Your Name]"
 
 # -----------------------------------------------------------------------------
 # CHECKPOINTS: Things to verify in content (at least 1 required)

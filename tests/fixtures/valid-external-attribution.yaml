@@ -1,0 +1,34 @@
+version: "1.0.0"
+
+meta:
+  domain: "Example Domain"
+  author: "Generic Author"
+  description: "Fixture for testing valid external attribution."
+  toolPrefix: "example"
+  attributionPolicy: "External frameworks, when included, are attributed to their original authors via per-section originalAuthor, sourceUrl, attributionType, and license fields."
+
+principles:
+  - name: "Example Principle"
+    guidelines:
+      - "A plain string guideline."
+      - text: "A guideline sourced from an external work."
+        attribution: "Generic External Author, Example Book (2024)"
+    originalAuthor: "Generic External Author"
+    sourceUrl: "https://example.com/framework"
+    attributionType: "external-paraphrased"
+    license: "Framework by Generic External Author; summary by Generic Author"
+
+checkpoints:
+  - id: "example_checkpoint"
+    name: "Example Checkpoint"
+    purpose: "Verify something matters."
+    whatIndicatesPresence:
+      - "Clear concept that the reader can recognize."
+    commonProblems:
+      - "Vague framing."
+
+reviewGuidance:
+  feedbackStructure:
+    - "Lead with strengths."
+  tone:
+    - "Constructive, specific."

@@ -198,6 +198,87 @@ requirements:
 - Security reports: compliance frameworks (SOC 2, HIPAA)
 - Technical docs: API versioning requirements
 
+## Attribution (Optional)
+
+Use these fields when part of your expertise file paraphrases or references a framework originally authored by someone else. Every field is optional and backward-compatible. Files that don't use attribution continue to validate unchanged.
+
+### Why attribution exists
+
+Most expertise files are single-author. Sometimes, though, the most useful thing you can offer a user is a framework created by someone else, explained in your own words. The attribution fields let you do that without misrepresenting authorship: you keep your name on your content, and credit the original author for theirs.
+
+### `meta.attributionPolicy`
+
+Top-level string that describes how your file handles external authorship. Set this when at least one section uses the section-level attribution fields.
+
+```yaml
+meta:
+  author: "Your Name"
+  license: "CC BY 4.0"
+  attributionPolicy: "External frameworks, when included, are attributed to their original authors via per-section originalAuthor, sourceUrl, attributionType, and license fields."
+```
+
+### Section-level fields
+
+These four optional fields can appear on any `principle`, `checkpoint`, `category`, `requirement`, or `qualityChecks` entry:
+
+| Field | Type | Purpose |
+|-------|------|---------|
+| `originalAuthor` | string | Name of the external author |
+| `sourceUrl` | string | URL to the original source |
+| `attributionType` | enum | How this section relates to the source (see below) |
+| `license` | string | Section-scoped license that overrides `meta.license` for this scope |
+
+### `attributionType` values
+
+The enum has five values covering the spectrum from own content through licensed reproduction:
+
+| Value | Meaning |
+|-------|---------|
+| `self-authored` | Your original content. Default when the field is omitted. |
+| `self-derived` | Your content derived from your other writing |
+| `external-reference` | Pointer to an external source, with minimal content reproduced here |
+| `external-paraphrased` | Paraphrase of an external framework with attribution (standard fair-use pattern) |
+| `external-licensed` | Reproduction of external content under an explicit license |
+
+### Per-item attribution on guidelines
+
+`guidelines` entries under a principle can be either a plain string or an object with its own attribution. Use this when most of a principle is yours but a single guideline comes from somewhere else.
+
+```yaml
+principles:
+  - name: "Clarity"
+    guidelines:
+      - "Write one idea per sentence."
+      - text: "Active voice keeps the actor visible."
+        attribution: "Generic Author, Example Style Guide"
+```
+
+### Complete example
+
+A checkpoint that paraphrases an external style guide, attributed at the section level:
+
+```yaml
+checkpoints:
+  - id: "consistent_terminology"
+    name: "Consistent Terminology"
+    purpose: "Same concept uses the same name throughout the document."
+    whatIndicatesPresence:
+      - "A single term chosen for each concept and used everywhere"
+      - "Synonyms removed or explicitly noted as equivalent"
+    commonProblems:
+      - "Mixing 'user', 'customer', and 'client' for the same role"
+    originalAuthor: "Generic Author"
+    sourceUrl: "https://example.com/acme-style-guide"
+    attributionType: "external-paraphrased"
+    license: "Framework by Generic Author; summary by Your Name"
+```
+
+### Validator behavior
+
+- Invalid `attributionType` values (anything outside the five allowed strings) fail validation with a clear error path.
+- Sections that declare `attributionType: "external-*"` but leave both `originalAuthor` and `sourceUrl` empty trigger a warning, since an external attribution with no source is not useful to a reader.
+- The validation summary includes a count of externally-attributed items.
+
 ## Complete Example
 
 See `content/expertise.yaml` for a complete working example.

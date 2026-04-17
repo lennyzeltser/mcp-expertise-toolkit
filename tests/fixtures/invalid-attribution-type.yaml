@@ -1,0 +1,30 @@
+version: "1.0.0"
+
+meta:
+  domain: "Example Domain"
+  author: "Generic Author"
+  description: "Fixture for testing invalid attributionType rejection."
+  toolPrefix: "example"
+
+principles:
+  - name: "Example Principle"
+    guidelines:
+      - "A plain string guideline."
+    originalAuthor: "Generic External Author"
+    sourceUrl: "https://example.com/framework"
+    attributionType: "made-up-value"
+
+checkpoints:
+  - id: "example_checkpoint"
+    name: "Example Checkpoint"
+    purpose: "Verify something matters."
+    whatIndicatesPresence:
+      - "Clear concept that the reader can recognize."
+    commonProblems:
+      - "Vague framing."
+
+reviewGuidance:
+  feedbackStructure:
+    - "Lead with strengths."
+  tone:
+    - "Constructive, specific."
