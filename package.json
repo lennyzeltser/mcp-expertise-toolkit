@@ -18,12 +18,9 @@
 	},
 	"dependencies": {
 		"@modelcontextprotocol/sdk": "^1.32.1",
-		"agents": "^0.20.1",
+		"agents": "^0.28.1",
 		"yaml": "^2.8.0",
 		"zod": "^4.2.1"
-	},
-	"overrides": {
-		"@modelcontextprotocol/sdk": "$@modelcontextprotocol/sdk"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.3.10",

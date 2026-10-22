@@ -443,7 +443,7 @@ When you customize the server, keep these in place:
 
 - Keep `@modelcontextprotocol/sdk` at 1.32 or newer, and keep the `maxToolInputElements` option on the `McpServer` constructor in `src/index.ts`. Without that option, the SDK validates every element of an oversized array before any limit applies, so an attacker can exhaust the Durable Object's memory with one request under the 4 MiB body cap. If you add a tool that accepts larger arrays or nested objects, raise the cap to just above your largest legitimate call.
 - Bound every tool argument in its Zod schema: an enum where the values are known, and `.max()` on every string and array.
-- The `overrides` entry in `package.json` is there because the `agents` 0.20.x package lists an older exact SDK version as a peer dependency. When you bump `agents` to 0.28.1 or newer, remove the entry.
+- The `agents` package lists exact versions of the MCP SDK packages as peer dependencies. When you bump `agents`, move `@modelcontextprotocol/sdk` to the version it lists (bun warns on a mismatch, npm refuses to install), and keep that version at 1.32 or newer.
 - Point clients at `/mcp`. Over the legacy `/sse` endpoint, the server accepts tool calls before a session is initialized, so keep that endpoint only for clients that cannot use `/mcp`.
 
 ---
