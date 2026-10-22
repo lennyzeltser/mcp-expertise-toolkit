@@ -1,11 +1,14 @@
 version: 2
 updates:
-  - package-ecosystem: "npm"
+  # The project installs with Bun and commits only bun.lock, which the npm
+  # updater cannot update.
+  - package-ecosystem: "bun"
     directory: "/"
     schedule:
       interval: "daily"
     # Wait a week after a release before proposing it, so a pulled or
-    # compromised release is less likely to reach a bump PR.
+    # compromised release is less likely to reach a bump PR. Matches
+    # minimumReleaseAge in bunfig.toml.
     cooldown:
       default-days: 7
     reviewers:
