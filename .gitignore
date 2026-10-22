@@ -26,7 +26,7 @@ npm-debug.log*
 *.tsbuildinfo
 worker-configuration.d.ts
 
-# Lock files (use bun.lockb)
+# Lock files from other package managers (bun.lock is committed)
 package-lock.json
 yarn.lock
 pnpm-lock.yaml

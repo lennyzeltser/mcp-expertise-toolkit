@@ -4,6 +4,10 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    # Wait a week after a release before proposing it, so a pulled or
+    # compromised release is less likely to reach a bump PR.
+    cooldown:
+      default-days: 7
     reviewers:
       - "lennyzeltser"
     commit-message:

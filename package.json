@@ -17,10 +17,13 @@
 		"test": "bun test"
 	},
 	"dependencies": {
-		"@modelcontextprotocol/sdk": "^1.29.0",
+		"@modelcontextprotocol/sdk": "^1.32.1",
 		"agents": "^0.20.1",
 		"yaml": "^2.8.0",
 		"zod": "^4.2.1"
+	},
+	"overrides": {
+		"@modelcontextprotocol/sdk": "$@modelcontextprotocol/sdk"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.3.10",

@@ -408,7 +408,8 @@ This design keeps user content local. Consider these characteristics before depl
 |----------|-----------|
 | Your expertise content | Anyone with the URL can call the tools |
 | Tool parameters | Server logs may contain checkpoint IDs, topic names |
-| Server metadata | Health endpoint reveals domain name, author, tool names |
+| Server metadata | Health endpoint reveals domain name, author, tool names, and file names |
+| Validation errors | `get_capabilities` lists files that failed validation and the error text |
 
 ### What's NOT Exposed
 
@@ -429,6 +430,21 @@ This design keeps user content local. Consider these characteristics before depl
 - Treat your expertise YAML as public documentation
 - Don't embed sensitive information in the YAML
 - If you need access control, consider [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/policies/access/)
+
+### Control Points
+
+Whoever can write to the R2 bucket controls what every connected AI assistant is told, including the instructions included in each tool response. Treat R2 write access as the control point for this server: keep the bucket private, scope API tokens to it, and watch any CI job or script that syncs YAML into it.
+
+Anyone can run up your bill or your free-tier quota by flooding the public endpoints. Each uncached request to the health endpoint or to `get_capabilities` triggers one R2 list operation, and the Worker creates a Durable Object for each new MCP session. The Worker caches the file listing for a minute. That limit applies per isolate, and an attacker who spreads requests across regions uses many isolates. On the free plan, an attacker who floods the endpoints uses up the daily Durable Object request allowance, and `/mcp` and `/sse` return errors until the next UTC day. For a public deployment, add a [Cloudflare rate limiting rule](https://developers.cloudflare.com/waf/rate-limiting-rules/) or Cloudflare Access in front of `/mcp` and `/sse`.
+
+Commit `bun.lock` and install with `bun install --frozen-lockfile` so a deploy ships the dependency versions you reviewed. Without a lockfile, every install resolves the newest matching release, and Dependabot's range bumps widen the window. The `bunfig.toml` in this repo also refuses package versions younger than seven days (Bun 1.3.2 or newer honors it), and Dependabot waits seven days before proposing a version update. Security updates from Dependabot skip that wait.
+
+When you customize the server, keep these in place:
+
+- Keep `@modelcontextprotocol/sdk` at 1.32 or newer, and keep the `maxToolInputElements` option on the `McpServer` constructor in `src/index.ts`. Without that option, the SDK validates every element of an oversized array before any limit applies, so an attacker can exhaust the Durable Object's memory with one request under the 4 MiB body cap. If you add a tool that accepts larger arrays or nested objects, raise the cap to just above your largest legitimate call.
+- Bound every tool argument in its Zod schema: an enum where the values are known, and `.max()` on every string and array.
+- The `overrides` entry in `package.json` is there because the `agents` 0.20.x package lists an older exact SDK version as a peer dependency. When you bump `agents` to 0.28.1 or newer, remove the entry.
+- Point clients at `/mcp`. Over the legacy `/sse` endpoint, the server accepts tool calls before a session is initialized, so keep that endpoint only for clients that cannot use `/mcp`.
 
 ---
 

@@ -23,6 +23,14 @@ interface Env extends Cloudflare.Env {
 
 // Configuration
 const CACHE_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours
+const LIST_CACHE_TTL_MS = 60 * 1000; // 1 minute
+
+// Largest number of array elements plus object members one tools/call may
+// carry. Without a cap the MCP SDK validates every element of an oversized
+// array before any per-field .max() applies (GHSA-46jr-4wx8-v453). The largest
+// legitimate call here is about 100 items (checkpoints 50 + focus 50) plus a
+// few keys.
+const MAX_TOOL_INPUT_ELEMENTS = 200;
 
 // Cache for expertise content (keyed by filename)
 const expertiseCache = new Map<
@@ -30,17 +38,48 @@ const expertiseCache = new Map<
 	{ content: ExpertiseContent; timestamp: number; etag: string }
 >();
 
+// Cache for the bucket listing. Each R2 list() is a billed Class A operation,
+// and anonymous clients can trigger one per /health request, per
+// get_capabilities call, and per new MCP session. The cache is per isolate,
+// so it bounds the rate rather than the total. Concurrent misses share one
+// in-flight listing so a burst against a cold cache costs one operation.
+let listCache: { files: string[]; timestamp: number } | null = null;
+let listInFlight: Promise<string[]> | null = null;
+
 // Track validation errors for diagnostics (keyed by filename)
 const validationErrors = new Map<string, string>();
 
 /**
- * List all YAML files in the R2 bucket.
+ * List all YAML files in the R2 bucket, following pagination. The listing is
+ * cached for LIST_CACHE_TTL_MS, so a newly uploaded file shows up on /health
+ * and in get_capabilities within a minute. Tools are registered when a session
+ * starts, so a new domain gets tools on the next new session.
  */
 async function listExpertiseFiles(bucket: R2Bucket): Promise<string[]> {
-	const list = await bucket.list();
-	return list.objects
-		.map((obj) => obj.key)
-		.filter((key) => key.endsWith(".yaml"));
+	if (listCache && Date.now() - listCache.timestamp < LIST_CACHE_TTL_MS) {
+		return listCache.files;
+	}
+	if (!listInFlight) {
+		listInFlight = (async () => {
+			try {
+				const files: string[] = [];
+				let cursor: string | undefined;
+				do {
+					const page = await bucket.list({ cursor });
+					for (const obj of page.objects) {
+						if (obj.key.endsWith(".yaml")) files.push(obj.key);
+					}
+					cursor = page.truncated ? page.cursor : undefined;
+				} while (cursor);
+				// A failed listing never reaches this line, so errors are not cached.
+				listCache = { files, timestamp: Date.now() };
+				return files;
+			} finally {
+				listInFlight = null;
+			}
+		})();
+	}
+	return listInFlight;
 }
 
 /**
@@ -213,9 +252,9 @@ function buildExpertiseContext(
 	if (qualityChecks && !includeExamples) {
 		const stripped: typeof qualityChecks = {};
 		for (const [key, check] of Object.entries(qualityChecks)) {
+			// Keep attribution and license fields; only the examples are dropped.
 			stripped[key] = {
-				whatToCheck: check.whatToCheck,
-				whyItMatters: check.whyItMatters,
+				...check,
 				examples: [], // Empty array instead of removing
 			};
 		}
@@ -283,7 +322,9 @@ function buildReviewContext(
 	if (!allFocus && qualityChecks && focus) {
 		const filtered: typeof qualityChecks = {};
 		for (const f of focus) {
-			if (qualityChecks[f]) {
+			// Own-property check: focus values come from the client, and keys such
+			// as "constructor" would otherwise resolve to inherited properties.
+			if (Object.hasOwn(qualityChecks, f)) {
 				filtered[f] = qualityChecks[f];
 			}
 		}
@@ -528,10 +569,13 @@ function formatAllCapabilities(
 // ============================================================================
 
 export class ExpertiseMCP extends McpAgent {
-	server = new McpServer({
-		name: "MCP Expertise Server",
-		version: "1.0.0",
-	});
+	server = new McpServer(
+		{
+			name: "MCP Expertise Server",
+			version: "1.0.0",
+		},
+		{ maxToolInputElements: MAX_TOOL_INPUT_ELEMENTS },
+	);
 
 	async init() {
 		const bucket = (this.env as Env).EXPERTISE_BUCKET;
@@ -654,6 +698,7 @@ export class ExpertiseMCP extends McpAgent {
 							"all",
 						]),
 					)
+					.max(6)
 					.optional()
 					.describe(
 						"Specific topics to load. Overrides detail_level for fine-grained control.",

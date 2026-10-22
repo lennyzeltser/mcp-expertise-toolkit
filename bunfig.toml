@@ -1,0 +1,4 @@
+[install]
+# Only install package versions published at least 7 days ago (in seconds), so
+# a pulled or compromised release is unlikely to reach a fresh install.
+minimumReleaseAge = 604800
